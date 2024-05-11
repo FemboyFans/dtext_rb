@@ -300,48 +300,56 @@ basic_inline := |*
 *|;
 
 inline := |*
-  'post #'i id             => { append_id_link("post", "post", "/posts/", { a1, a2 }); };
-  'appeal #'i id           => { append_id_link("appeal", "post-appeal", "/post_appeals/", { a1, a2 }); };
-  'flag #'i id             => { append_id_link("flag", "post-flag", "/post_flags/", { a1, a2 }); };
-  'note #'i id             => { append_id_link("note", "note", "/notes/", { a1, a2 }); };
-  'forum #'i id            => { append_id_link("forum", "forum-post", "/forum_posts/", { a1, a2 }); };
-  'topic #'i id            => { append_id_link("topic", "forum-topic", "/forum_topics/", { a1, a2 }); };
-  'comment #'i id          => { append_id_link("comment", "comment", "/comments/", { a1, a2 }); };
-  'dmail #'i id            => { append_id_link("dmail", "dmail", "/dmails/", { a1, a2 }); };
-  'pool #'i id             => { append_id_link("pool", "pool", "/pools/", { a1, a2 }); };
-  'user #'i id             => { append_id_link("user", "user", "/users/", { a1, a2 }); };
-  'artist #'i id           => { append_id_link("artist", "artist", "/artists/", { a1, a2 }); };
-  'ban #'i id              => { append_id_link("ban", "ban", "/bans/", { a1, a2 }); };
-  'bur #'i id              => { append_id_link("BUR", "bulk-update-request", "/bulk_update_requests/", { a1, a2 }); };
-  'alias #'i id            => { append_id_link("alias", "tag-alias", "/tag_aliases/", { a1, a2 }); };
-  'implication #'i id      => { append_id_link("implication", "tag-implication", "/tag_implications/", { a1, a2 }); };
-  'favgroup #'i id         => { append_id_link("favgroup", "favorite-group", "/favorite_groups/", { a1, a2 }); };
-  'mod action #'i id       => { append_id_link("mod action", "mod-action", "/mod_actions/", { a1, a2 }); };
-  'modreport #'i id        => { append_id_link("modreport", "moderation-report", "/moderation_reports/", { a1, a2 }); };
-  'feedback #'i id         => { append_id_link("feedback", "user-feedback", "/user_feedbacks/", { a1, a2 }); };
-  'wiki #'i id             => { append_id_link("wiki", "wiki-page", "/wiki_pages/", { a1, a2 }); };
-  'asset #'i id            => { append_id_link("asset", "media-asset", "/media_assets/", { a1, a2 }); };
-  'media asset #'i id      => { append_id_link("asset", "media-asset", "/media_assets/", { a1, a2 }); };
+  'thumb #'i id => {
+    if(posts.size() < options.max_thumbs) {
+      long post_id = strtol(a1, (char**)&a2, 10);
+      posts.push_back(post_id);
+      append("<a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"");
+      append_html_escaped({ a1, a2 });
+      append("\" href=\"");
+      append_relative_url("/posts/");
+      append_uri_escaped({ a1, a2 });
+      append("\">");
+      append("post #");
+      append_html_escaped({ a1, a2 });
+      append("</a>");
+    } else {
+      append_id_link("post", "post", "/posts/", { a1, a2 });
+    }
+  };
 
-  'issue #'i id            => { append_id_link("issue", "github", "https://github.com/danbooru/danbooru/issues/", { a1, a2 }); };
-  'pull #'i id             => { append_id_link("pull", "github-pull", "https://github.com/danbooru/danbooru/pull/", { a1, a2 }); };
-  'commit #'i id           => { append_id_link("commit", "github-commit", "https://github.com/danbooru/danbooru/commit/", { a1, a2 }); };
-  'artstation #'i alnum_id => { append_id_link("artstation", "artstation", "https://www.artstation.com/artwork/", { a1, a2 }); };
-  'deviantart #'i id       => { append_id_link("deviantart", "deviantart", "https://www.deviantart.com/deviation/", { a1, a2 }); };
-  'nijie #'i id            => { append_id_link("nijie", "nijie", "https://nijie.info/view.php?id=", { a1, a2 }); };
-  'pawoo #'i id            => { append_id_link("pawoo", "pawoo", "https://pawoo.net/web/statuses/", { a1, a2 }); };
-  'pixiv #'i id            => { append_id_link("pixiv", "pixiv", "https://www.pixiv.net/artworks/", { a1, a2 }); };
-  'seiga #'i id            => { append_id_link("seiga", "seiga", "https://seiga.nicovideo.jp/seiga/im", { a1, a2 }); };
-  'twitter #'i id          => { append_id_link("twitter", "twitter", "https://twitter.com/i/web/status/", { a1, a2 }); };
+  'post #'i id                                 => { append_id_link("post", "post", "/posts/", { a1, a2 }); };
+  'post changes #'i id                         => { append_id_link("post changes", "post-changes-for", "/posts/versions?search[post_id]=", { a1, a2 }); };
+  'flag #'i id                                 => { append_id_link("flag", "post-flag", "/posts/flags/", { a1, a2 }); };
+  'note #'i id                                 => { append_id_link("note", "note", "/notes/", { a1, a2 }); };
+  'forum'i ' 'i? 'post'i? ' #'i id             => { append_id_link("forum", "forum-post", "/forum_posts/", { a1, a2 }); };
+  'forum 'i? 'topic #'i id                     => { append_id_link("topic", "forum-topic", "/forum_topics/", { a1, a2 }); };
+  'forum 'i? 'topic #'i id '/p'i page          => { append_paged_link("topic #", { a1, a2 }, "<a class=\"dtext-link dtext-id-link dtext-forum-topic-id-link\" href=\"", "/forum_topics/", "?page=", { b1, b2 }); };
+  'comment #'i id                              => { append_id_link("comment", "comment", "/comments/", { a1, a2 }); };
+  'dmail #'i id                                => { append_id_link("dmail", "dmail", "/dmails/", { a1, a2 }); };
+  'dmail #'i id '/' dmail_key                  => { append_dmail_key_link({ a1, a2 }, { b1, b2 }); };
+  'pool #'i id                                 => { append_id_link("pool", "pool", "/pools/", { a1, a2 }); };
+  'user #'i id                                 => { append_id_link("user", "user", "/users/", { a1, a2 }); };
+  'artist #'i id                               => { append_id_link("artist", "artist", "/artists/", { a1, a2 }); };
+  'artist changes #'i id                       => { append_id_link("artist changes", "artist-changes-for", "/artists/versions?search[artist_id]=", { a1, a2 }); };
+  'ban #'i id                                  => { append_id_link("ban", "ban", "/bans/", { a1, a2 }); };
+  'bur #'i id                                  => { append_id_link("BUR", "bulk-update-request", "/bulk_update_requests/", { a1, a2 }); };
+  'alias #'i id                                => { append_id_link("alias", "tag-alias", "/tags/aliases/", { a1, a2 }); };
+  'implication #'i id                          => { append_id_link("implication", "tag-implication", "/tags/implications/", { a1, a2 }); };
+  'mod action #'i id                           => { append_id_link("mod action", "mod-action", "/mod_actions/", { a1, a2 }); };
+  'record #'i id                               => { append_id_link("record", "user-feedback", "/users/feedbacks/", { a1, a2 }); };
+  'wiki'i ' 'i? 'page'i? ' #'i id              => { append_id_link("wiki", "wiki-page", "/wiki_pages/", { a1, a2 }); };
+  'wiki'i ' 'i? 'page 'i? 'changes'i? ' #'i id => { append_id_link("wiki changes", "wiki-page-changes-for", "/wiki_pages/versions?search[wiki_page_id]=", { a1, a2 }); };
+  'set #'i id                                  => { append_id_link("set", "set", "/post_sets/", { a1, a2 }); };
+  'ticket #'i id                               => { append_id_link("ticket", "ticket", "/tickets/", { a1, a2 }); };
+  'take'i ' 'i? 'down 'i 'request 'i? '#'i id  => { append_id_link("takedown", "takedown", "/takedowns/", { a1, a2 }); };
+  'dnp #'i id                                  => { append_id_link("avoid posting", "avoid-posting", "/avoid_postings/", { a1, a2 }); };
+  'avoid posting #'i id                        => { append_id_link("avoid posting", "avoid-posting", "/avoid_postings/", { a1, a2 }); };
 
-  'yandere #'i id => { append_id_link("yandere", "yandere", "https://yande.re/post/show/", { a1, a2 }); };
-  'sankaku #'i id => { append_id_link("sankaku", "sankaku", "https://chan.sankakucomplex.com/post/show/", { a1, a2 }); };
-  'gelbooru #'i id => { append_id_link("gelbooru", "gelbooru", "https://gelbooru.com/index.php?page=post&s=view&id=", { a1, a2 }); };
+  'issue #'i id                                => { append_id_link("issue", "github", "https://github.com/PawsMovin/PawsMovin/issues/", { a1, a2 }); };
+  'pull #'i id                                 => { append_id_link("pull", "github-pull", "https://github.com/PawsMovin/PawsMovin/pull/", { a1, a2 }); };
+  'commit #'i id                               => { append_id_link("commit", "github-commit", "https://github.com/PawsMovin/PawsMovin/commit/", { a1, a2 }); };
 
-  'dmail #'i id '/' dmail_key => { append_dmail_key_link({ a1, a2 }, { b1, b2 }); };
-
-  'topic #'i id '/p'i page => { append_paged_link("topic #", { a1, a2 }, "<a class=\"dtext-link dtext-id-link dtext-forum-topic-id-link\" href=\"", "/forum_topics/", "?page=", { b1, b2 }); };
-  'pixiv #'i id '/p'i page => { append_paged_link("pixiv #", { a1, a2 }, "<a rel=\"external nofollow noreferrer\" class=\"dtext-link dtext-id-link dtext-pixiv-id-link\" href=\"", "https://www.pixiv.net/artworks/", "#", { b1, b2 }); };
 
   basic_post_search_link => {
     append_post_search_link({ a1, a2 }, { b1, b2 }, { b1, b2 }, { d1, d2 });
@@ -1416,13 +1424,15 @@ std::string StateMachine::parse_inline(const std::string_view dtext) {
 }
 
 std::string StateMachine::parse_basic_inline(const std::string_view dtext) {
+  DTextOptions opt = options;
+  opt.max_thumbs = 0;
   StateMachine sm(dtext, dtext_en_basic_inline, options);
   return sm.parse();
 }
 
 StateMachine::ParseResult StateMachine::parse_dtext(const std::string_view dtext, DTextOptions options) {
   StateMachine sm(dtext, dtext_en_main, options);
-  return { sm.parse(), sm.wiki_pages, sm.mentions };
+  return { sm.parse(), sm.wiki_pages, sm.posts, sm.mentions };
 }
 
 std::string StateMachine::parse() {
@@ -1467,11 +1477,13 @@ int main(int argc, char* argv[]) {
   bool opt_verbose = FALSE;
   bool opt_inline = FALSE;
   bool opt_no_mentions = FALSE;
+  int opt_max_thumbs = 25;
 
   GOptionEntry options[] = {
     { "no-mentions", 'm', 0, G_OPTION_ARG_NONE, &opt_no_mentions, "Don't parse @mentions", NULL },
     { "inline",      'i', 0, G_OPTION_ARG_NONE, &opt_inline,      "Parse in inline mode", NULL },
     { "verbose",     'v', 0, G_OPTION_ARG_NONE, &opt_verbose,     "Print debug output", NULL },
+    { "max-thumbs",  't', 0, G_OPTION_ARG_NONE, &opt_max_thumbs,  "The maximum amount of thumbnails to load", NULL },
     { NULL }
   };
 

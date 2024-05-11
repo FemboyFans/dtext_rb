@@ -36,7 +36,7 @@ static auto parse_dtext(VALUE input, DTextOptions options = {}) {
   }
 }
 
-static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALUE internal_domains, VALUE f_inline, VALUE f_disable_mentions) {
+static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALUE internal_domains, VALUE f_inline, VALUE f_disable_mentions, VALUE max_thumbs) {
   if (NIL_P(input)) {
     return Qnil;
   }
@@ -44,6 +44,7 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALU
   DTextOptions options;
   options.f_inline = RTEST(f_inline);
   options.f_mentions = !RTEST(f_disable_mentions);
+  options.max_thumbs = FIX2LONG(max_thumbs);
 
   if (!NIL_P(base_url)) {
     options.base_url = StringValueCStr(base_url); // base_url.to_str # raises ArgumentError if base_url contains null bytes.
@@ -61,18 +62,24 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALU
     options.internal_domains.insert(domain);
   }
 
-  auto [dtext, wiki_pages, mentions] = parse_dtext(input, options);
+  auto [dtext, wiki_pages, posts, mentions] = parse_dtext(input, options);
   VALUE retStr = rb_utf8_str_new(dtext.c_str(), dtext.size());
   VALUE retWikiPages = rb_ary_new_capa(wiki_pages.size());
+  VALUE retPostIds = rb_ary_new_capa(posts.size());
   VALUE retMentions = rb_ary_new_capa(mentions.size());
 
   VALUE ret = rb_hash_new();
   rb_hash_aset(ret, ID2SYM(rb_intern("dtext")), retStr);
   rb_hash_aset(ret, ID2SYM(rb_intern("wiki_pages")), retWikiPages);
+  rb_hash_aset(ret, ID2SYM(rb_intern("post_ids")), retPostIds);
   rb_hash_aset(ret, ID2SYM(rb_intern("mentions")), retMentions);
 
   for (auto wiki_page : wiki_pages) {
     rb_ary_push(retWikiPages, rb_str_new(wiki_page.data(), wiki_page.size()));
+  }
+
+  for (long post_id : posts) {
+    rb_ary_push(retPostIds, LONG2FIX(post_id));
   }
 
   for (std::string mention : mentions) {
@@ -83,21 +90,8 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALU
   return ret;
 }
 
-static VALUE c_parse_wiki_pages(VALUE self, VALUE input) {
-  auto [_dtext, wiki_pages, _mentions] = parse_dtext(input);
-
-  VALUE rb_wiki_pages = rb_ary_new_capa(wiki_pages.size());
-  for (auto wiki_page : wiki_pages) {
-    VALUE rb_wiki_page = rb_str_new(wiki_page.data(), wiki_page.size());
-    rb_ary_push(rb_wiki_pages, rb_wiki_page);
-  }
-
-  return rb_wiki_pages;
-}
-
 extern "C" void Init_dtext() {
   cDText = rb_define_class("DText", rb_cObject);
   cDTextError = rb_define_class_under(cDText, "Error", rb_eStandardError);
-  rb_define_singleton_method(cDText, "c_parse", c_parse, 6);
-  rb_define_singleton_method(cDText, "c_parse_wiki_pages", c_parse_wiki_pages, 1);
+  rb_define_singleton_method(cDText, "c_parse", c_parse, 7);
 }

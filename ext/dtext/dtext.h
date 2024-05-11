@@ -91,17 +91,17 @@ struct DTextOptions {
   // If false, strip block-level elements (used for displaying DText in small spaces).
   bool f_inline = false;
 
-  // If false, ignore @-mentions (used for artist commentaries).
+  // If false, ignore @-mentions
   bool f_mentions = true;
-
-  // If false, ignore `!post #1234` media embeds.
-  bool f_media_embeds = true;
 
   // If set, convert relative URLs to absolute URLs (used for sending dmails).
   std::string base_url;
 
   // Links to this domain are considered internal URLs, rather than external URLs (used so links to https://danbooru.donmai.us don't get marked as external).
   std::string domain;
+
+  // The maximum amount of thumbnails to render.
+  int max_thumbs;
 
   // Links to these domains are converted to shortlinks (used so links to https://danbooru.donmai.us/posts/1234 are converted to post #1234).
   std::unordered_set<std::string> internal_domains;
@@ -144,9 +144,10 @@ public:
   std::vector<int> stack;
   std::vector<element_t> dstack;
   std::unordered_set<std::string> wiki_pages;
+  std::vector<long> posts;
   std::vector<std::string> mentions;
 
-  using ParseResult = std::tuple<std::string, decltype(wiki_pages), decltype(mentions)>;
+  using ParseResult = std::tuple<std::string, decltype(wiki_pages), decltype(posts), decltype(mentions)>;
   static ParseResult parse_dtext(const std::string_view dtext, const DTextOptions options);
 
   std::string parse_inline(const std::string_view dtext);

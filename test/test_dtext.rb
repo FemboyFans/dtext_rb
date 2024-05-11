@@ -36,6 +36,14 @@ class DTextTest < Minitest::Test
     end
   end
 
+  def assert_parse_extra(dtext: nil, wiki_pages: nil, post_ids: nil, mentions: nil, input:, **options)
+    result = parse(input, **options)
+    assert_equal(result[:dtext], dtext, "DText: #{input} (dtext)") unless dtext.nil?
+    assert_equal(result[:wiki_pages], wiki_pages, "DText: #{input} (wiki_pages)") unless wiki_pages.nil?
+    assert_equal(result[:post_ids], post_ids, "DText: #{input} (post_ids)") unless post_ids.nil?
+    assert_equal(result[:mentions], mentions, "DText: #{input} (mentions)") unless mentions.nil?
+  end
+
   def assert_inline_parse(expected, input)
     assert_parse(expected, input, inline: true)
   end
@@ -46,10 +54,6 @@ class DTextTest < Minitest::Test
 
     assert_equal([expected_username], result[:mentions])
     assert_equal("@" + expected_username, actual_username)
-  end
-
-  def assert_wiki_pages(expected, dtext)
-    assert_equal(expected.sort, DText.c_parse_wiki_pages(dtext).sort)
   end
 
   def test_relative_urls
@@ -466,6 +470,13 @@ class DTextTest < Minitest::Test
     assert_parse('<blockquote><h1>header</h1></blockquote><p>one<br>two</p>', %{[quote]\nh1. header\n[/quote]\none\ntwo})
 
     assert_parse('<p>foo <strong>bar</strong></p><h4>See also</h4>', "foo [b]bar\nh4. See also")
+  end
+
+  def test_thumbnails
+    assert_parse_extra(post_ids: [1], dtext: "<p><a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"1\" href=\"/posts/1\">post #1</a></p>", input: "thumb #1")
+    assert_parse_extra(post_ids: [1, 2], dtext: "<p><a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"1\" href=\"/posts/1\">post #1</a> <a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"2\" href=\"/posts/2\">post #2</a></p>", input: "thumb #1 thumb #2")
+    assert_parse_extra(post_ids: [1], dtext: "<p><a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"1\" href=\"/posts/1\">post #1</a> <a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/2\">post #2</a></p>", input: "thumb #1 thumb #2", max_thumbs: 1)
+    assert_parse_extra(post_ids: [], dtext: "<p><a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/1\">post #1</a> <a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/2\">post #2</a></p>", input: "thumb #1 thumb #2", max_thumbs: 0)
   end
 
   def test_inline_elements
@@ -1465,10 +1476,7 @@ class DTextTest < Minitest::Test
 
   def test_id_links
     assert_parse_id_link("dtext-post-id-link", "/posts/1234", "post #1234")
-    assert_parse_id_link("dtext-media-asset-id-link", "/media_assets/1234", "asset #1234")
-    assert_parse_id_link("dtext-media-asset-id-link", "/media_assets/1234", "media asset #1234", text: "asset #1234")
-    assert_parse_id_link("dtext-post-appeal-id-link", "/post_appeals/1234", "appeal #1234")
-    assert_parse_id_link("dtext-post-flag-id-link", "/post_flags/1234", "flag #1234")
+    assert_parse_id_link("dtext-post-flag-id-link", "/posts/flags/1234", "flag #1234")
     assert_parse_id_link("dtext-note-id-link", "/notes/1234", "note #1234")
     assert_parse_id_link("dtext-forum-post-id-link", "/forum_posts/1234", "forum #1234")
     assert_parse_id_link("dtext-forum-topic-id-link", "/forum_topics/1234", "topic #1234")
@@ -1477,30 +1485,20 @@ class DTextTest < Minitest::Test
     assert_parse_id_link("dtext-user-id-link", "/users/1234", "user #1234")
     assert_parse_id_link("dtext-artist-id-link", "/artists/1234", "artist #1234")
     assert_parse_id_link("dtext-ban-id-link", "/bans/1234", "ban #1234")
-    assert_parse_id_link("dtext-tag-alias-id-link", "/tag_aliases/1234", "alias #1234")
-    assert_parse_id_link("dtext-tag-implication-id-link", "/tag_implications/1234", "implication #1234")
-    assert_parse_id_link("dtext-favorite-group-id-link", "/favorite_groups/1234", "favgroup #1234")
+    assert_parse_id_link("dtext-tag-alias-id-link", "/tags/aliases/1234", "alias #1234")
+    assert_parse_id_link("dtext-tag-implication-id-link", "/tags/implications/1234", "implication #1234")
     assert_parse_id_link("dtext-mod-action-id-link", "/mod_actions/1234", "mod action #1234")
-    assert_parse_id_link("dtext-user-feedback-id-link", "/user_feedbacks/1234", "feedback #1234")
+    assert_parse_id_link("dtext-user-feedback-id-link", "/users/feedbacks/1234", "record #1234")
     assert_parse_id_link("dtext-wiki-page-id-link", "/wiki_pages/1234", "wiki #1234")
-    assert_parse_id_link("dtext-moderation-report-id-link", "/moderation_reports/1234", "modreport #1234")
     assert_parse_id_link("dtext-dmail-id-link", "/dmails/1234", "dmail #1234")
+    assert_parse_id_link("dtext-set-id-link", "/post_sets/1234", "set #1234")
+    assert_parse_id_link("dtext-ticket-id-link", "/tickets/1234", "ticket #1234")
+    assert_parse_id_link("dtext-avoid-posting-id-link", "/avoid_postings/1234", "avoid posting #1234")
+    assert_parse_id_link("dtext-takedown-id-link", "/takedowns/1234", "takedown #1234")
 
-    assert_parse_id_link("dtext-github-id-link", "https://github.com/danbooru/danbooru/issues/1234", "issue #1234")
-    assert_parse_id_link("dtext-github-pull-id-link", "https://github.com/danbooru/danbooru/pull/1234", "pull #1234")
-    assert_parse_id_link("dtext-github-commit-id-link", "https://github.com/danbooru/danbooru/commit/1234", "commit #1234")
-    assert_parse_id_link("dtext-artstation-id-link", "https://www.artstation.com/artwork/A1", "artstation #A1")
-    assert_parse_id_link("dtext-deviantart-id-link", "https://www.deviantart.com/deviation/1234", "deviantart #1234")
-    assert_parse_id_link("dtext-nijie-id-link", "https://nijie.info/view.php?id=1234", "nijie #1234")
-    assert_parse_id_link("dtext-pawoo-id-link", "https://pawoo.net/web/statuses/1234", "pawoo #1234")
-    assert_parse_id_link("dtext-pixiv-id-link", "https://www.pixiv.net/artworks/1234", "pixiv #1234")
-    assert_parse_id_link("dtext-pixiv-id-link", "https://www.pixiv.net/artworks/1234#2", "pixiv #1234/p2")
-    assert_parse_id_link("dtext-seiga-id-link", "https://seiga.nicovideo.jp/seiga/im1234", "seiga #1234")
-    assert_parse_id_link("dtext-twitter-id-link", "https://twitter.com/i/web/status/1234", "twitter #1234")
-
-    assert_parse_id_link("dtext-yandere-id-link", "https://yande.re/post/show/1234", "yandere #1234")
-    assert_parse_id_link("dtext-sankaku-id-link", "https://chan.sankakucomplex.com/post/show/1234", "sankaku #1234")
-    assert_parse_id_link("dtext-gelbooru-id-link", "https://gelbooru.com/index.php?page=post&amp;s=view&amp;id=1234", "gelbooru #1234")
+    assert_parse_id_link("dtext-github-id-link", "https://github.com/PawsMovin/PawsMovin/issues/1234", "issue #1234")
+    assert_parse_id_link("dtext-github-pull-id-link", "https://github.com/PawsMovin/PawsMovin/pull/1234", "pull #1234")
+    assert_parse_id_link("dtext-github-commit-id-link", "https://github.com/PawsMovin/PawsMovin/commit/1234", "commit #1234")
 
     assert_parse('<p>(R-18指定注意)→<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/2053744">post #2053744</a></p>', '(R-18指定注意)→post #2053744')
 
@@ -1798,38 +1796,6 @@ class DTextTest < Minitest::Test
     assert_parse('<p>inline <span class="spoiler"><em>foo</em></span></p>', 'inline [spoiler][i]foo[/spoiler][/i]')
 
     # assert_parse('<div class="spoiler"><blockquote><p>foo</p></blockquote></div>', '[spoiler]\n[quote]\nfoo\n[/spoiler][/quote]')
-  end
-
-  def test_parse_wiki_pages
-    assert_wiki_pages(%w[], "")
-    assert_wiki_pages(%w[kantai_collection], "[[kantai_collection]]")
-    assert_wiki_pages(%w[Kantai\ Collection], "[[Kantai Collection]]")
-    assert_wiki_pages(%w[Kantai\ Collection], "[[Kantai Collection|Kancolle]]")
-    assert_wiki_pages(%w[cat], "[[cat]]s")
-    assert_wiki_pages(%w[60s], "19[[60s]]")
-    assert_wiki_pages(%w[cat], "[[cat]] [[cat]]")
-    assert_wiki_pages(%w[cat dog], "[[cat]] [[dog]]")
-    assert_wiki_pages(%w[], "[nodtext][[cat]][/nodtext]")
-
-    touhou_tags = [
-      "100th Black Market", "Alternative Facts in Eastern Utopia", "Antinomy of Common Flowers", "Bohemian Archive in Japanese Red",
-      "Cage in Lunatic Runagate", "Changeability of Strange Dream", "Curiosities of Lotus Asia", "Dateless Bar \"Old Adam\"",
-      "Dolls in Pseudo Paradise", "Double Dealing Character", "Double Spoiler", "Dr.Latency's Freak Report",
-      "Eastern and Little Nature Deity", "Embodiment of Scarlet Devil", "Forbidden Scrollery", "Foul Detective Satori",
-      "Ghostly Field Club", "Hidden Star in Four Seasons", "Highly Responsive to Prayers", "Hopeless Masquerade",
-      "Immaterial and Missing Power", "Imperishable Night", "Impossible Spell Card", "Inaba of the Moon and Inaba of the Earth",
-      "Legacy of Lunatic Kingdom", "List of Touhou Characters", "List of Touhou Fanwork Tags", "Lotus Land Story", "Magical Astronomy",
-      "Michi no Hana Michi no Tabi", "Mountain of Faith", "Mystic Square", "Neo-traditionalism of Japan", "Perfect Cherry Blossom",
-      "Perfect Memento in Strict Sense", "Phantasmagoria of Dim.Dream", "Phantasmagoria of Flower View", "Portrait of Exotic Girls",
-      "Rainbow-Colored Septentrion", "Retrospective 53 minutes", "Scarlet Weather Rhapsody", "Shoot the Bullet", "Silent Sinner in Blue",
-      "Story of Eastern Wonderland", "Strange Creators of Outer World", "Subterranean Animism", "Symposium of Post-mysticism",
-      "Ten Desires", "Touhou (PC-98)", "Touhou Bougetsushou", "Touhou Gouyoku Ibun", "Touhou Hisoutensoku", "Touhou Sangetsusei",
-      "Trojan Green Asteroid", "Turbo Byakuren", "Unconnected Marketeers", "Undefined Fantastic Object", "Urban Legend in Limbo",
-      "Violet Detector", "Wild and Horned Hermit", "Wily Beast and Weakest Creature", "Yousei Daisensou", "ZUN (artist)", "danmaku",
-      "gameplay mechanics", "grimoire_of_marisa", "grimoire_of_usami", "lotus eaters", "parody"
-    ]
-
-    assert_wiki_pages(touhou_tags, File.read("test/files/touhou-wiki.txt"))
   end
 
   def test_null_bytes
