@@ -1,4 +1,4 @@
-FROM ruby:3.2.3
+FROM ruby:3.3.1
 WORKDIR /dtext
 
 RUN <<EOS
@@ -6,7 +6,7 @@ RUN <<EOS
   apt-get install ragel=6.10-4
 EOS
 
-COPY --link dtext_rb.gemspec lib/dtext/version.rb Gemfile Gemfile.lock .
+COPY --link dtext_rb.gemspec lib/dtext/version.rb Gemfile Gemfile.lock ./
 COPY --link lib/dtext/version.rb lib/dtext/version.rb
 RUN bundle install
 

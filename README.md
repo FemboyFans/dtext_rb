@@ -13,6 +13,13 @@ Commit the changes to `dtext.cpp.rl` and the resuling changes in `dtext.cpp`. Bu
 To test these changes locally commit them and update the `Gemfile`s dtext entry. Specifying the commit hash allows you to rebuild the container without having to also increment the version number every time. Don't forget to `bundle lock` before rebuilding.  
 `gem "dtext_rb", git: "https://github.com/YOUR_FORK/dtext_rb.git", ref: "YOUR_COMMIT_HASH"`
 
+# Usage
+
+```bash
+ruby -Ilib -rdtext -e 'puts DText.parse("hello world")'
+# => <p>hello world</p>
+```
+
 ## Installation
 
 ```bash
