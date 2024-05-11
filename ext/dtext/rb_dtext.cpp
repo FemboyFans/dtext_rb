@@ -61,12 +61,30 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALU
     options.internal_domains.insert(domain);
   }
 
-  auto [html, _wiki_pages] = parse_dtext(input, options);
-  return rb_utf8_str_new(html.c_str(), html.size());
+  auto [dtext, wiki_pages, mentions] = parse_dtext(input, options);
+  VALUE retStr = rb_utf8_str_new(dtext.c_str(), dtext.size());
+  VALUE retWikiPages = rb_ary_new_capa(wiki_pages.size());
+  VALUE retMentions = rb_ary_new_capa(mentions.size());
+
+  VALUE ret = rb_hash_new();
+  rb_hash_aset(ret, ID2SYM(rb_intern("dtext")), retStr);
+  rb_hash_aset(ret, ID2SYM(rb_intern("wiki_pages")), retWikiPages);
+  rb_hash_aset(ret, ID2SYM(rb_intern("mentions")), retMentions);
+
+  for (auto wiki_page : wiki_pages) {
+    rb_ary_push(retWikiPages, rb_str_new(wiki_page.data(), wiki_page.size()));
+  }
+
+  for (std::string mention : mentions) {
+    rb_ary_push(retMentions, rb_utf8_str_new(mention.c_str(), mention.size()));
+  }
+
+  return ret;
+  return ret;
 }
 
 static VALUE c_parse_wiki_pages(VALUE self, VALUE input) {
-  auto [_html, wiki_pages] = parse_dtext(input);
+  auto [_dtext, wiki_pages, _mentions] = parse_dtext(input);
 
   VALUE rb_wiki_pages = rb_ary_new_capa(wiki_pages.size());
   for (auto wiki_page : wiki_pages) {

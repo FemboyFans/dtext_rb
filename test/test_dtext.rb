@@ -10,8 +10,12 @@ class DTextTest < Minitest::Test
     DText.parse(*args, **options)
   end
 
+  def parse_dtext(...)
+    parse(...)&.[](:dtext)
+  end
+
   def parse_inline(dtext)
-    parse(dtext, inline: true)
+    parse_dtext(dtext, inline: true)
   end
 
   def assert_parse_id_link(class_name, url, input, text: input, **options)
@@ -26,9 +30,9 @@ class DTextTest < Minitest::Test
 
   def assert_parse(expected, input, **options)
     if expected.nil?
-      assert_nil(parse(input, **options))
+      assert_nil(parse_dtext(input, **options))
     else
-      assert_equal(expected, parse(input, **options), "DText: #{input}")
+      assert_equal(expected, parse_dtext(input, **options), "DText: #{input}")
     end
   end
 
@@ -36,10 +40,11 @@ class DTextTest < Minitest::Test
     assert_parse(expected, input, inline: true)
   end
 
-  def assert_mention(expected_username, input, **options)
-    html = parse(input)
-    actual_username = Nokogiri::HTML5.fragment(html).css("a.dtext-user-mention-link").text
+  def assert_mention(expected_username, input, **)
+    result = parse(input, **)
+    actual_username = Nokogiri::HTML5.fragment(result[:dtext]).css("a.dtext-user-mention-link").text
 
+    assert_equal([expected_username], result[:mentions])
     assert_equal("@" + expected_username, actual_username)
   end
 
@@ -64,7 +69,7 @@ class DTextTest < Minitest::Test
   def test_args
     assert_parse(nil, nil)
     assert_parse("", "")
-    assert_raises(TypeError) { parse(42) }
+    assert_raises(TypeError) { parse_dtext(42) }
   end
 
   def test_mentions
@@ -1828,32 +1833,32 @@ class DTextTest < Minitest::Test
   end
 
   def test_null_bytes
-    assert_raises(DText::Error) { parse("foo\0bar") }
+    assert_raises(DText::Error) { parse_dtext("foo\0bar") }
   end
 
   def test_encodings
     assert_parse("<p>foo</p>", "foo".dup.force_encoding("US-ASCII"))
     assert_parse("<p>foo</p>", "foo".dup.force_encoding("UTF-8"))
-    assert_raises(DText::Error) { parse("foo".dup.force_encoding("ASCII-8BIT")) }
-    assert_raises(DText::Error) { parse("\xFF".dup.force_encoding("US-ASCII")) }
-    assert_raises(DText::Error) { parse("\xFF".dup.force_encoding("UTF-8")) }
+    assert_raises(DText::Error) { parse_dtext("foo".dup.force_encoding("ASCII-8BIT")) }
+    assert_raises(DText::Error) { parse_dtext("\xFF".dup.force_encoding("US-ASCII")) }
+    assert_raises(DText::Error) { parse_dtext("\xFF".dup.force_encoding("UTF-8")) }
   end
 
   def test_wiki_link_xss
     assert_raises(DText::Error) do
-      parse("[[\xFA<script \xFA>alert(42); //\xFA</script \xFA>]]")
+      parse_dtext("[[\xFA<script \xFA>alert(42); //\xFA</script \xFA>]]")
     end
   end
 
   def test_mention_xss
     assert_raises(DText::Error) do
-      parse("@user\xF4<b>xss\xFA</b>")
+      parse_dtext("@user\xF4<b>xss\xFA</b>")
     end
   end
 
   def test_url_xss
     assert_raises(DText::Error) do
-      parse(%("url":/page\xF4">x\xFA<b>xss\xFA</b>))
+      parse_dtext(%("url":/page\xF4">x\xFA<b>xss\xFA</b>))
     end
   end
 end

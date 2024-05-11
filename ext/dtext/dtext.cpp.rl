@@ -870,6 +870,7 @@ void StateMachine::append_absolute_link(const std::string_view url, const std::s
 }
 
 void StateMachine::append_mention(const std::string_view name) {
+  mentions.push_back(std::string{name});
   append("<a class=\"dtext-link dtext-user-mention-link\" data-user-name=\"");
   append_html_escaped(name);
   append("\" href=\"");
@@ -1421,7 +1422,7 @@ std::string StateMachine::parse_basic_inline(const std::string_view dtext) {
 
 StateMachine::ParseResult StateMachine::parse_dtext(const std::string_view dtext, DTextOptions options) {
   StateMachine sm(dtext, dtext_en_main, options);
-  return { sm.parse(), sm.wiki_pages };
+  return { sm.parse(), sm.wiki_pages, sm.mentions };
 }
 
 std::string StateMachine::parse() {
