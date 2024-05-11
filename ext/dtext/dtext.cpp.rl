@@ -261,6 +261,8 @@ open_tr = '[tr'i tag_attributes :>> ']' | '<tr'i tag_attributes :>> '>';
 open_th = '[th'i tag_attributes :>> ']' | '<th'i tag_attributes :>> '>';
 open_td = '[td'i tag_attributes :>> ']' | '<td'i tag_attributes :>> '>';
 open_br = '[br]'i | '<br>'i;
+open_color = '[color='i ([a-z]+|'#'i[0-9a-fA-F]{3,6}) >mark_a1 %mark_a2 ']';
+open_color_typed = '[color='i ('gen'i('eral'i)?|'art'i('ist'i)?|'va'|'voice-actor'i|'oc'i|'ch'i('ar'i('acter'i)?)?|'co'i('py'i('right'i)?)?|'spec'i('ies'i)?|'inv'i('alid'i)?|'meta'i|'lor'i('e'i)?|'s'i('afe'i)?|'q'i('uestionable'i)?|'e'i('xplicit'i)?) >mark_a1 %mark_a2 ']';
 
 open_tn = '[tn]'i | '<tn>'i;
 open_b = '[b]'i | '<b>'i | '<strong>'i;
@@ -285,6 +287,7 @@ close_b = '[/b]'i | '</b>'i | '</strong>'i;
 close_i = '[/i]'i | '</i>'i | '</em>'i;
 close_s = '[/s]'i | '</s>'i;
 close_u = '[/u]'i | '</u>'i;
+close_color = '[/color]'i;
 
 basic_inline := |*
   open_b  => { dstack_open_element(INLINE_B, "<strong>"); };
@@ -430,6 +433,33 @@ inline := |*
     } else {
       append("<br>");
     };
+  };
+
+  open_color_typed => {
+    if(options.f_allow_color) {
+      dstack_open_element(INLINE_COLOR, "<span class=\"dtext-color-");
+      append_uri_escaped({ a1, a2 });
+      append("\">");
+    }
+  };
+
+  open_color => {
+    if(options.f_allow_color) {
+        dstack_open_element(INLINE_COLOR, "<span class=\"dtext-color\" style=\"color: ");
+      if(a1[0] == '#') {
+        append("#");
+        append_uri_escaped({ a1 + 1, a2 });
+      } else {
+        append_uri_escaped({ a1, a2 });
+      }
+      append("\">");
+    }
+  };
+
+  close_color => {
+    if(options.f_allow_color) {
+      dstack_close_element(INLINE_COLOR, { ts, te });
+    }
   };
 
   open_code blank_line? => {
@@ -1261,6 +1291,7 @@ void StateMachine::dstack_rewind() {
     case INLINE_S: append("</s>"); break;
     case INLINE_TN: append("</span>"); break;
     case INLINE_CODE: append("</code>"); break;
+    case INLINE_COLOR: append("</span>"); break;
 
     case BLOCK_TN: append_block("</p>"); break;
     case BLOCK_TABLE: append_block("</table>"); break;
@@ -1447,79 +1478,3 @@ std::string StateMachine::parse() {
 
   return output;
 }
-
-/* Everything below is optional, it's only needed to build bin/cdtext.exe. */
-#ifdef CDTEXT
-
-#include <glib.h>
-#include <iostream>
-
-static void parse_file(FILE* input, FILE* output) {
-  std::stringstream ss;
-  ss << std::cin.rdbuf();
-  std::string dtext = ss.str();
-
-  try {
-    auto result = StateMachine::parse_dtext(dtext, options);
-
-    if (fwrite(result.c_str(), 1, result.size(), output) != result.size()) {
-      perror("fwrite failed");
-      exit(1);
-    }
-  } catch (std::exception& e) {
-    fprintf(stderr, "dtext parse error: %s\n", e.what());
-    exit(1);
-  }
-}
-
-int main(int argc, char* argv[]) {
-  GError* error = NULL;
-  bool opt_verbose = FALSE;
-  bool opt_inline = FALSE;
-  bool opt_no_mentions = FALSE;
-  int opt_max_thumbs = 25;
-
-  GOptionEntry options[] = {
-    { "no-mentions", 'm', 0, G_OPTION_ARG_NONE, &opt_no_mentions, "Don't parse @mentions", NULL },
-    { "inline",      'i', 0, G_OPTION_ARG_NONE, &opt_inline,      "Parse in inline mode", NULL },
-    { "verbose",     'v', 0, G_OPTION_ARG_NONE, &opt_verbose,     "Print debug output", NULL },
-    { "max-thumbs",  't', 0, G_OPTION_ARG_NONE, &opt_max_thumbs,  "The maximum amount of thumbnails to load", NULL },
-    { NULL }
-  };
-
-  g_autoptr(GOptionContext) context = g_option_context_new("[FILE...]");
-  g_option_context_add_main_entries(context, options, NULL);
-
-  if (!g_option_context_parse(context, &argc, &argv, &error)) {
-    fprintf(stderr, "option parsing failed: %s\n", error->message);
-    g_clear_error(&error);
-    return 1;
-  }
-
-  if (opt_verbose) {
-    g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
-  }
-
-  /* skip first argument (progname) */
-  argc--, argv++;
-
-  if (argc == 0) {
-    parse_file(stdin, stdout, { .f_inline = opt_inline, .f_mentions = !opt_no_mentions });
-    return 0;
-  }
-
-  for (const char* filename = *argv; argc > 0; argc--, argv++) {
-    FILE* input = fopen(filename, "r");
-    if (!input) {
-      perror("fopen failed");
-      return 1;
-    }
-
-    parse_file(input, stdout, opt_inline, !opt_no_mentions);
-    fclose(input);
-  }
-
-  return 0;
-}
-
-#endif

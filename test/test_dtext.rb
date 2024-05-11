@@ -479,6 +479,16 @@ class DTextTest < Minitest::Test
     assert_parse_extra(post_ids: [], dtext: "<p><a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/1\">post #1</a> <a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/2\">post #2</a></p>", input: "thumb #1 thumb #2", max_thumbs: 0)
   end
 
+  def test_color
+    assert_parse("<p><span class=\"dtext-color\" style=\"color: #FFA500\">test</span></p>", "[color=#FFA500]test[/color]", allow_color: true)
+    assert_parse("<p><span class=\"dtext-color\" style=\"color: orangered\">test</span></p>", "[color=orangered]test[/color]", allow_color: true)
+    assert_parse("<p>test</p>", "[color=orangered]test[/color]", allow_color: false)
+    typed = %w[general gen artist art voice-actor va copyright copy co character char ch oc species spec invalid inv meta lore lor safe questionable explicit]
+    typed.each do |category|
+      assert_parse("<p><span class=\"dtext-color-#{category}\">test</span></p>", "[color=#{category}]test[/color]", allow_color: true)
+    end
+  end
+
   def test_inline_elements
     assert_inline_parse("<strong>foo</strong>", "[b]foo[/b]")
     assert_inline_parse("<strong>foo</strong>", "<b>foo</b>")

@@ -39,6 +39,7 @@ typedef enum element_t {
   INLINE_I,
   INLINE_U,
   INLINE_S,
+  INLINE_COLOR,
   INLINE_TN,
   INLINE_CODE,
   INLINE_SPOILER,
@@ -76,6 +77,7 @@ static const char* element_names[] = {
   "INLINE_I",
   "INLINE_U",
   "INLINE_S",
+  "INLINE_COLOR",
   "INLINE_TN",
   "INLINE_CODE",
   "INLINE_SPOILER",
@@ -93,6 +95,9 @@ struct DTextOptions {
 
   // If false, ignore @-mentions
   bool f_mentions = true;
+
+  // If false, disallows colors.
+  bool f_allow_color = false;
 
   // If set, convert relative URLs to absolute URLs (used for sending dmails).
   std::string base_url;

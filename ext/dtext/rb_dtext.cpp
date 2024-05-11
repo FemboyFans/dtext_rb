@@ -36,7 +36,7 @@ static auto parse_dtext(VALUE input, DTextOptions options = {}) {
   }
 }
 
-static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALUE internal_domains, VALUE f_inline, VALUE f_disable_mentions, VALUE max_thumbs) {
+static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALUE internal_domains, VALUE f_inline, VALUE f_disable_mentions, VALUE f_allow_color, VALUE max_thumbs) {
   if (NIL_P(input)) {
     return Qnil;
   }
@@ -44,6 +44,7 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALU
   DTextOptions options;
   options.f_inline = RTEST(f_inline);
   options.f_mentions = !RTEST(f_disable_mentions);
+  options.f_allow_color = RTEST(f_allow_color);
   options.max_thumbs = FIX2LONG(max_thumbs);
 
   if (!NIL_P(base_url)) {
@@ -93,5 +94,5 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALU
 extern "C" void Init_dtext() {
   cDText = rb_define_class("DText", rb_cObject);
   cDTextError = rb_define_class_under(cDText, "Error", rb_eStandardError);
-  rb_define_singleton_method(cDText, "c_parse", c_parse, 7);
+  rb_define_singleton_method(cDText, "c_parse", c_parse, 8);
 }
