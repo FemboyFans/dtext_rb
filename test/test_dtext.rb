@@ -577,7 +577,7 @@ class DTextTest < Minitest::Test
     assert_parse('<blockquote><blockquote><p>foo</p></blockquote></blockquote>', "[quote][quote]foo[/quote]")
     assert_parse('<blockquote><div class="spoiler"><p>foo</p></div></blockquote>', "[quote][spoiler]foo[/quote]")
     assert_parse('<blockquote><pre>foo[/quote]</pre></blockquote>', "[quote][code]foo[/quote]")
-    assert_parse('<blockquote><details><summary>Show</summary><div><p>foo</p></div></details></blockquote>', "[quote][section]foo[/quote]")
+    assert_parse('<blockquote><details><summary></summary><div><p>foo</p></div></details></blockquote>', "[quote][section]foo[/quote]")
     assert_parse('<blockquote><p>foo[/quote]</p></blockquote>', "[quote][nodtext]foo[/quote]")
     assert_parse('<blockquote><table class="striped"><td>foo</td></table></blockquote>', "[quote][table][td]foo[/quote]")
     assert_parse('<blockquote><ul><li>foo</li></ul></blockquote>', "[quote]* foo[/quote]")
@@ -592,11 +592,11 @@ class DTextTest < Minitest::Test
     assert_parse("<blockquote><p>a<br><span class=\"spoiler\">blah</span><br>c</p></blockquote>", "[quote]\na\n[spoiler]blah[/spoiler]\nc[/quote]")
     assert_parse("<blockquote><p>a</p><div class=\"spoiler\"><p>blah</p></div><p>c</p></blockquote>", "[quote]\na\n\n[spoiler]blah[/spoiler]\n\nc[/quote]")
 
-    assert_parse('<details><summary>Show</summary><div><div class="spoiler"><ul><li>blah</li></ul></div></div></details>', "[section]\n[spoiler]\n* blah\n[/spoiler]\n[/section]")
+    assert_parse('<details><summary></summary><div><div class="spoiler"><ul><li>blah</li></ul></div></div></details>', "[section]\n[spoiler]\n* blah\n[/spoiler]\n[/section]")
   end
 
   def test_quote_blocks_nested_section
-    assert_parse("<blockquote><p>a</p><details><summary>Show</summary><div><p>b</p></div></details><p>c</p></blockquote>", "[quote]\na\n[section]\nb\n[/section]\nc\n[/quote]")
+    assert_parse("<blockquote><p>a</p><details><summary></summary><div><p>b</p></div></details><p>c</p></blockquote>", "[quote]\na\n[section]\nb\n[/section]\nc\n[/quote]")
   end
 
   def test_block_code
@@ -718,8 +718,8 @@ class DTextTest < Minitest::Test
     assert_parse('<blockquote><pre>[/quote]</pre></blockquote>', "[quote]\n```\n[/quote]\n```")
     assert_parse('<div class="spoiler"><pre>code</pre></div>', "[spoiler]\n```\ncode\n```\n[/spoiler]")
     assert_parse('<div class="spoiler"><pre>code</pre></div>', "[spoiler]\n```\ncode\n```")
-    assert_parse('<details><summary>Show</summary><div><pre>code</pre></div></details>', "[section]\n```\ncode\n```\n[/section]")
-    assert_parse('<details><summary>Show</summary><div><pre>code</pre></div></details>', "[section]\n```\ncode\n```")
+    assert_parse('<details><summary></summary><div><pre>code</pre></div></details>', "[section]\n```\ncode\n```\n[/section]")
+    assert_parse('<details><summary></summary><div><pre>code</pre></div></details>', "[section]\n```\ncode\n```")
     assert_parse("<pre>```\ncode\n```</pre>", "[code]\n```\ncode\n```\n[/code]")
     assert_parse("<p>```\ncode\n```</p>", "[nodtext]\n```\ncode\n```\n[/nodtext]")
     assert_parse('<p class="tn"><pre>code</pre></p>', "[tn]\n```\ncode\n```\n[/tn]") # XXX invalid html
@@ -1207,10 +1207,10 @@ class DTextTest < Minitest::Test
     assert_parse('<p>a</p><div class="spoiler"><ul><li>b</li><li>c</li></ul></div><p>d</p>', "a\n[spoilers]\n* b\n* c\n[/spoilers]\nd")
 
     assert_parse('<p>a</p><blockquote><ul><li>b</li><li>c</li></ul></blockquote><p>d</p>', "a\n[quote]\n* b\n* c\n[/quote]\nd")
-    assert_parse('<p>a</p><details><summary>Show</summary><div><ul><li>b</li><li>c</li></ul></div></details><p>d</p>', "a\n[section]\n* b\n* c\n[/section]\nd")
+    assert_parse('<p>a</p><details><summary></summary><div><ul><li>b</li><li>c</li></ul></div></details><p>d</p>', "a\n[section]\n* b\n* c\n[/section]\nd")
 
     assert_parse('<p>a</p><blockquote><ul><li>b</li><li>c</li></ul><p>d</p></blockquote>', "a\n[quote]\n* b\n* c\n\nd")
-    assert_parse('<p>a</p><details><summary>Show</summary><div><ul><li>b</li><li>c</li></ul><p>d</p></div></details>', "a\n[section]\n* b\n* c\n\nd")
+    assert_parse('<p>a</p><details><summary></summary><div><ul><li>b</li><li>c</li></ul><p>d</p></div></details>', "a\n[section]\n* b\n* c\n\nd")
 
     assert_parse('<ul><li>* * * *</li></ul>', "* * * * *") # XXX wrong
     assert_parse('<ul><li>Nosebleed *</li></ul>', "* Nosebleed *") # XXX wrong
@@ -1343,7 +1343,7 @@ class DTextTest < Minitest::Test
     assert_parse('<p class="tn">foo</p>', "[tn]foo\n")
     assert_parse("<pre>foo\n</pre>", "[code]foo\n")
     assert_parse("<blockquote><p>foo</p></blockquote>", "[quote]foo\n")
-    assert_parse("<details><summary>Show</summary><div><p>foo</p></div></details>", "[section]foo\n")
+    assert_parse("<details><summary></summary><div><p>foo</p></div></details>", "[section]foo\n")
     assert_parse("<p>foo\n</p>", "[nodtext]foo\n") # XXX should replace newlines
 
     assert_parse('<p>[/i]<br>blah</p>', "[/i]\nblah\n")
@@ -1418,7 +1418,7 @@ class DTextTest < Minitest::Test
     assert_parse('<ul><li>list</li></ul><table class="striped"><tr><td>text</td></tr></table>', "* list\n[table][tr][td]text[/td][/tr][/table]")
     assert_parse('<div class="spoiler"><table class="striped"><tr><td>text</td></tr></table></div>', "[spoiler][table][tr][td]text[/td][/tr][/table][/spoiler]")
     assert_parse('<blockquote><table class="striped"><tr><td>text</td></tr></table></blockquote>', "[quote][table][tr][td]text[/td][/tr][/table][/quote]")
-    assert_parse('<details><summary>Show</summary><div><table class="striped"><tr><td>text</td></tr></table></div></details>', "[section][table][tr][td]text[/td][/tr][/table][/section]")
+    assert_parse('<details><summary></summary><div><table class="striped"><tr><td>text</td></tr></table></div></details>', "[section][table][tr][td]text[/td][/tr][/table][/section]")
 
     assert_parse('<table class="striped"><td colspan="2">foo</td></table>', '[table][td colspan=2]foo[/td][/table]')
     assert_parse('<table class="striped"><td rowspan="3">foo</td></table>', '[table][td rowspan=3]foo[/td][/table]')
@@ -1527,35 +1527,35 @@ class DTextTest < Minitest::Test
   end
 
   def test_section
-    assert_parse("<details><summary>Show</summary><div><p>hello world</p></div></details>", "[section]hello world[/section]")
-    assert_parse("<details><summary>Show</summary><div><p>hello world</p></div></details>", "<section>hello world</section>")
-    assert_parse("<details><summary>Show</summary><div><p>hello world</p></div></details>", "<section>hello world[/section]")
-    assert_parse("<details><summary>Show</summary><div><p>hello world</p></div></details>", "[section]hello world</section>")
+    assert_parse("<details><summary></summary><div><p>hello world</p></div></details>", "[section]hello world[/section]")
+    assert_parse("<details><summary></summary><div><p>hello world</p></div></details>", "<section>hello world</section>")
+    assert_parse("<details><summary></summary><div><p>hello world</p></div></details>", "<section>hello world[/section]")
+    assert_parse("<details><summary></summary><div><p>hello world</p></div></details>", "[section]hello world</section>")
 
     assert_parse("<p>inline [section]blah blah[/section]</p>", "inline [section]blah blah[/section]")
     assert_parse("<p>inline <em>foo [section]blah blah[/section]</em></p>", "inline [i]foo [section]blah blah[/section]")
     assert_parse('<p>inline <span class="spoiler">foo [section]blah blah[/section]</span></p>', "inline [spoiler]foo [section]blah blah[/section]")
 
-    assert_parse("<p>inline <em>foo</em></p><details><summary>Show</summary><div><p>blah blah</p></div></details>", "inline [i]foo\n\n[section]blah blah[/section]")
-    assert_parse('<p>inline <span class="spoiler">foo</span></p><details><summary>Show</summary><div><p>blah blah</p></div></details>', "inline [spoiler]foo\n\n[section]blah blah[/section]")
+    assert_parse("<p>inline <em>foo</em></p><details><summary></summary><div><p>blah blah</p></div></details>", "inline [i]foo\n\n[section]blah blah[/section]")
+    assert_parse('<p>inline <span class="spoiler">foo</span></p><details><summary></summary><div><p>blah blah</p></div></details>', "inline [spoiler]foo\n\n[section]blah blah[/section]")
 
-    assert_parse('<details><summary>Show</summary><div><p>test</p></div></details>', "[section]\ntest\n[/section] ")
-    assert_parse('<details><summary>Show</summary><div><p>test</p></div></details><p>blah</p>', "[section]\ntest\n[/section] blah")
-    assert_parse('<details><summary>Show</summary><div><p>test</p></div></details><p>blah</p>', "[section]\ntest\n[/section] \nblah")
-    assert_parse('<details><summary>Show</summary><div><p>test</p></div></details><p>blah</p>', "[section]\ntest\n[/section]\nblah")
-    assert_parse('<details><summary>Show</summary><div><p>test</p></div></details><p> blah</p>', "[section]\ntest\n[/section]\n blah") # XXX should ignore space
+    assert_parse('<details><summary></summary><div><p>test</p></div></details>', "[section]\ntest\n[/section] ")
+    assert_parse('<details><summary></summary><div><p>test</p></div></details><p>blah</p>', "[section]\ntest\n[/section] blah")
+    assert_parse('<details><summary></summary><div><p>test</p></div></details><p>blah</p>', "[section]\ntest\n[/section] \nblah")
+    assert_parse('<details><summary></summary><div><p>test</p></div></details><p>blah</p>', "[section]\ntest\n[/section]\nblah")
+    assert_parse('<details><summary></summary><div><p>test</p></div></details><p> blah</p>', "[section]\ntest\n[/section]\n blah") # XXX should ignore space
 
     assert_parse("<p>[/section]</p>", "[/section]")
     assert_parse("<p>foo [/section] bar</p>", "foo [/section] bar")
     assert_parse('<p>test<br>[/section] blah</p>', "test\n[/section] blah")
     assert_parse('<p>test<br>[/section]</p><ul><li>blah</li></ul>', "test\n[/section]\n* blah")
 
-    assert_parse('<details><summary>Show</summary><div><p>test</p></div></details><h4>See also</h4>', "[section]\ntest\n[/section]\nh4. See also")
-    assert_parse('<details><summary>Show</summary><div><p>test</p></div></details><div class="spoiler"><p>blah</p></div>', "[section]\ntest\n[/section]\n[spoiler]blah[/spoiler]")
+    assert_parse('<details><summary></summary><div><p>test</p></div></details><h4>See also</h4>', "[section]\ntest\n[/section]\nh4. See also")
+    assert_parse('<details><summary></summary><div><p>test</p></div></details><div class="spoiler"><p>blah</p></div>', "[section]\ntest\n[/section]\n[spoiler]blah[/spoiler]")
 
-    assert_parse("<details><summary>Show</summary><div><p>foo</p></div></details>", "[section]\nfoo\n [/section]")
-    assert_parse("<details><summary>Show</summary><div><p>foo</p></div></details>", "[section]\nfoo\n\n [/section]")
-    assert_parse("<details><summary>Show</summary><div><ul><li>foo</li></ul></div></details>", "[section]\n* foo\n [/section]")
+    assert_parse("<details><summary></summary><div><p>foo</p></div></details>", "[section]\nfoo\n [/section]")
+    assert_parse("<details><summary></summary><div><p>foo</p></div></details>", "[section]\nfoo\n\n [/section]")
+    assert_parse("<details><summary></summary><div><ul><li>foo</li></ul></div></details>", "[section]\n* foo\n [/section]")
   end
 
   def test_aliased_section
@@ -1590,12 +1590,76 @@ class DTextTest < Minitest::Test
     assert_parse('<p>inline <span class="spoiler">foo [section=title]blah blah[/section]</span></p>', "inline [spoiler]foo [section=title]blah blah[/section]")
   end
 
+  def test_section_expanded
+    assert_parse("<details open><summary></summary><div><p>hello world</p></div></details>", "[section,expanded]hello world[/section]")
+    assert_parse("<details open><summary></summary><div><p>hello world</p></div></details>", "<section,expanded>hello world</section>")
+    assert_parse("<details open><summary></summary><div><p>hello world</p></div></details>", "<section,expanded>hello world[/section]")
+    assert_parse("<details open><summary></summary><div><p>hello world</p></div></details>", "[section,expanded]hello world</section>")
+
+    assert_parse("<p>inline [section]blah blah[/section]</p>", "inline [section]blah blah[/section]")
+    assert_parse("<p>inline <em>foo [section]blah blah[/section]</em></p>", "inline [i]foo [section]blah blah[/section]")
+    assert_parse('<p>inline <span class="spoiler">foo [section]blah blah[/section]</span></p>', "inline [spoiler]foo [section]blah blah[/section]")
+
+    assert_parse("<p>inline <em>foo</em></p><details open><summary></summary><div><p>blah blah</p></div></details>", "inline [i]foo\n\n[section,expanded]blah blah[/section]")
+    assert_parse('<p>inline <span class="spoiler">foo</span></p><details open><summary></summary><div><p>blah blah</p></div></details>', "inline [spoiler]foo\n\n[section,expanded]blah blah[/section]")
+
+    assert_parse('<details open><summary></summary><div><p>test</p></div></details>', "[section,expanded]\ntest\n[/section] ")
+    assert_parse('<details open><summary></summary><div><p>test</p></div></details><p>blah</p>', "[section,expanded]\ntest\n[/section] blah")
+    assert_parse('<details open><summary></summary><div><p>test</p></div></details><p>blah</p>', "[section,expanded]\ntest\n[/section] \nblah")
+    assert_parse('<details open><summary></summary><div><p>test</p></div></details><p>blah</p>', "[section,expanded]\ntest\n[/section]\nblah")
+    assert_parse('<details open><summary></summary><div><p>test</p></div></details><p> blah</p>', "[section,expanded]\ntest\n[/section]\n blah") # XXX should ignore space
+
+    assert_parse("<p>[/section]</p>", "[/section]")
+    assert_parse("<p>foo [/section] bar</p>", "foo [/section] bar")
+    assert_parse('<p>test<br>[/section] blah</p>', "test\n[/section] blah")
+    assert_parse('<p>test<br>[/section]</p><ul><li>blah</li></ul>', "test\n[/section]\n* blah")
+
+    assert_parse('<details open><summary></summary><div><p>test</p></div></details><h4>See also</h4>', "[section,expanded]\ntest\n[/section]\nh4. See also")
+    assert_parse('<details open><summary></summary><div><p>test</p></div></details><div class="spoiler"><p>blah</p></div>', "[section,expanded]\ntest\n[/section]\n[spoiler]blah[/spoiler]")
+
+    assert_parse("<details open><summary></summary><div><p>foo</p></div></details>", "[section,expanded]\nfoo\n [/section]")
+    assert_parse("<details open><summary></summary><div><p>foo</p></div></details>", "[section,expanded]\nfoo\n\n [/section]")
+    assert_parse("<details open><summary></summary><div><ul><li>foo</li></ul></div></details>", "[section,expanded]\n* foo\n [/section]")
+  end
+
+  def test_aliased_section_expanded
+    assert_parse("<details open><summary>hello</summary><div><p>blah blah</p></div></details>", "[section,expanded=hello]blah blah[/section]")
+    assert_parse("<details open><summary>hello</summary><div><p>blah blah</p></div></details>", "[section,expanded hello]blah blah[/section]")
+    assert_parse("<details open><summary>hello</summary><div><p>blah blah</p></div></details>", "[section,expanded = hello]blah blah[/section]")
+    assert_parse("<details open><summary>hello</summary><div><p>blah blah</p></div></details>", "[section,expanded= hello]blah blah[/section]")
+    assert_parse("<details open><summary>hello</summary><div><p>blah blah</p></div></details>", "[section,expanded =hello]blah blah[/section]")
+
+    assert_parse("<details open><summary>hello</summary><div><p>blah blah</p></div></details>", "<section,expanded=hello>blah blah</section>")
+    assert_parse("<details open><summary>ab]cd</summary><div><p>blah blah</p></div></details>", "<section,expanded=ab]cd>blah blah</section>")
+    assert_parse("<details open><summary>ab</summary><div><p>cd&gt;blah blah</p></div></details>", "<section,expanded=ab>cd>blah blah</section>")
+
+    assert_parse("<details open><summary></summary><div><p>blah blah</p></div></details>", "[section,expanded=]blah blah[/section]")
+    assert_parse("<details open><summary></summary><div><p>blah blah</p></div></details>", "<section,expanded=>blah blah</section>")
+    assert_parse("<details open><summary></summary><div><p>blah blah</p></div></details>", "[section,expanded ]blah blah[/section]")
+    assert_parse("<details open><summary></summary><div><p>blah blah</p></div></details>", "[section,expanded= ]blah blah[/section]")
+
+    assert_parse("<p>[sectionhello]blah blah[/section]</p>", "[sectionhello]blah blah[/section]")
+    assert_parse("<p>[section <br>title]blah blah[/section]</p>", "[section \ntitle]blah blah[/section]")
+
+    assert_parse("<p>inline [section=hello]blah[/section]</p>", "inline [section=hello]blah[/section]")
+
+    assert_parse("<p>inline</p><details open><summary>hello</summary><div><p>blah</p></div></details><p>blah</p>", "inline\n[section,expanded=hello]blah[/section]\nblah")
+    assert_parse("<ul><li>list</li></ul><details open><summary>hello</summary><div><p>blah</p></div></details>", "* list\n[section,expanded=hello]blah[/section]")
+
+    assert_parse("<ul><li>list [section=hello]blah[/section]</li></ul>", "* list [section=hello]blah[/section]")
+    assert_parse("<h1>foo [section=hello]blah[/section]</h1>", "h1. foo [section=hello]blah[/section]")
+    assert_parse("<h1>foo</h1><details open><summary>hello</summary><div><p>blah</p></div></details>", "h1. foo\n[section,expanded=hello]blah[/section]")
+
+    assert_parse("<p>inline <em>foo [section=title]blah blah[/section]</em></p>", "inline [i]foo [section=title]blah blah[/section]")
+    assert_parse('<p>inline <span class="spoiler">foo [section=title]blah blah[/section]</span></p>', "inline [spoiler]foo [section=title]blah blah[/section]")
+  end
+
   def test_section_with_nested_code
-    assert_parse("<details><summary>Show</summary><div><pre>hello</pre></div></details>", "[section]\n[code]\nhello\n[/code]\n[/section]")
+    assert_parse("<details><summary></summary><div><pre>hello</pre></div></details>", "[section]\n[code]\nhello\n[/code]\n[/section]")
   end
 
   def test_section_with_nested_list
-    assert_parse("<details><summary>Show</summary><div><ul><li>a</li><li>b</li></ul></div></details><p>c</p>", "[section]\n* a\n* b\n[/section]\nc")
+    assert_parse("<details><summary></summary><div><ul><li>a</li><li>b</li></ul></div></details><p>c</p>", "[section]\n* a\n* b\n[/section]\nc")
   end
 
   def test_hr
@@ -1628,7 +1692,7 @@ class DTextTest < Minitest::Test
     assert_parse("<blockquote><hr></blockquote>", "[quote]\n[hr]\n[/quote]")
     assert_parse('<div class="spoiler"><hr></div>', "[spoiler]\n[hr]\n[/spoiler]")
     assert_parse('<p class="tn"><hr></p>', "[tn]\n[hr]\n[/tn]")
-    assert_parse("<details><summary>Show</summary><div><hr></div></details>", "[section]\n[hr]\n[/section]")
+    assert_parse("<details><summary></summary><div><hr></div></details>", "[section]\n[hr]\n[/section]")
     assert_parse("<pre>[hr]</pre>", "[code]\n[hr]\n[/code]")
     assert_parse("<p>[hr]</p>", "[nodtext]\n[hr]\n[/nodtext]")
     assert_parse('<table class="striped"></table>', "[table]\n[hr]\n[/table]")
@@ -1638,11 +1702,11 @@ class DTextTest < Minitest::Test
 
     #assert_parse("<blockquote><hr></blockquote>", "[quote][hr][/quote]") # XXX should this work?
     #assert_parse('<div class="spoiler"><hr></div>', "[spoiler][hr][/spoiler]") # XXX should this work?
-    #assert_parse("<details><summary>Show</summary><hr></details>", "[section][hr][/section]") # XXX should this work?
+    #assert_parse("<details><summary></summary><hr></details>", "[section][hr][/section]") # XXX should this work?
 
     assert_parse("<blockquote><hr></blockquote>", "[quote]\n[hr]\n[/quote]")
     assert_parse('<div class="spoiler"><hr></div>', "[spoiler]\n[hr]\n[/spoiler]")
-    assert_parse("<details><summary>Show</summary><div><hr></div></details>", "[section]\n[hr]\n[/section]")
+    assert_parse("<details><summary></summary><div><hr></div></details>", "[section]\n[hr]\n[/section]")
 
     assert_parse('<p>inline <strong></strong></p><hr><p>[/b]</p>', "inline [b]\n[hr]\n[/b]")
     assert_parse('<p>inline <span class="tn"></span></p><hr><p>[/tn]</p>', "inline [tn]\n[hr]\n[/tn]")

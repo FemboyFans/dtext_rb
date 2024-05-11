@@ -235,8 +235,10 @@ dmail_key = (alnum | '=' | '-')+ >mark_b1 %mark_b2;
 header_id = (alnum | [_/#!:&\-])+; # XXX '/', '#', '!', ':', and '&' are grandfathered in for old wiki versions.
 header = 'h'i [123456] >mark_a1 %mark_a2 '.' >mark_b1 >mark_b2 ws*;
 header_with_id = 'h'i [123456] >mark_a1 %mark_a2 '#' header_id >mark_b1 %mark_b2 '.' ws*;
-aliased_section = ('[section'i (ws* '=' ws* | ws+) ((nonnewline - ']')* >mark_a1 %mark_a2) ']')
+open_aliased_section = ('[section'i (ws* '=' ws* | ws+) ((nonnewline - ']')* >mark_a1 %mark_a2) ']')
                | ('<section'i (ws* '=' ws* | ws+) ((nonnewline - '>')* >mark_a1 %mark_a2) '>');
+open_aliased_section_expanded = ('[section,expanded'i (ws* '=' ws* | ws+) ((nonnewline - ']')* >mark_a1 %mark_a2) ']')
+               | ('<section,expanded'i (ws* '=' ws* | ws+) ((nonnewline - '>')* >mark_a1 %mark_a2) '>');
 
 list_item = '*'+ >mark_e1 %mark_e2 ws+ nonnewline+ >mark_f1 %mark_f2;
 
@@ -255,6 +257,7 @@ open_spoilers = ('[spoiler'i 's'i? ']') | ('<spoiler'i 's'i? '>');
 open_nodtext = '[nodtext]'i | '<nodtext>'i;
 open_quote = '[quote]'i | '<quote>'i | '<blockquote>'i;
 open_section = '[section]'i | '<section>'i;
+open_section_expanded = '[section,expanded]'i | '<section,expanded>'i;
 open_code = '[code]'i | '<code>'i;
 open_code_lang = '[code'i ws* '=' ws* (alnum+ >mark_a1 %mark_a2) ']' | '<code'i ws* '=' ws* (alnum+ >mark_a1 %mark_a2) '>';
 open_table = '[table]'i | '<table>'i;
@@ -534,7 +537,7 @@ inline := |*
   # these are block level elements that should kick us out of the inline
   # scanner
 
-  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_section | aliased_section | hr | header | header_with_id) => {
+  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_section | open_section_expanded | open_aliased_section | open_aliased_section_expanded | hr | header | header_with_id) => {
     dstack_close_leaf_blocks();
     fexec ts;
     fret;
@@ -754,18 +757,21 @@ main := |*
   };
 
   open_section space* => {
-    dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_SECTION, "<details>");
-    append_block("<summary>Show</summary><div>");
+    append_section({}, false);
   };
 
-  aliased_section space* => {
+  open_section_expanded space* => {
+    append_section({}, true);
+  };
+
+  open_aliased_section space* => {
     g_debug("block [section=]");
-    dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_SECTION, "<details>");
-    append_block("<summary>");
-    append_block_html_escaped({ a1, a2 });
-    append_block("</summary><div>");
+    append_section({ a1, a2 }, false);
+  };
+
+  open_aliased_section_expanded space* => {
+    g_debug("block expanded [section=]");
+    append_section({ a1, a2 }, true);
   };
 
   space* close_section ws* => {
@@ -1098,6 +1104,19 @@ void StateMachine::append_post_search_link(const std::string_view prefix, const 
   append("</a>");
 
   clear_matches();
+}
+
+void StateMachine::append_section(const std::string_view summary, bool initially_open) {
+  dstack_close_leaf_blocks();
+  dstack_open_element(BLOCK_SECTION, "<details");
+  if (initially_open) {
+    append_block(" open");
+  }
+  append_block("><summary>");
+  if (!summary.empty()) {
+    append_block_html_escaped(summary);
+  }
+  append_block("</summary><div>");
 }
 
 void StateMachine::append_wiki_link(const std::string_view prefix, const std::string_view tag, const std::string_view anchor, const std::string_view title, const std::string_view suffix) {
