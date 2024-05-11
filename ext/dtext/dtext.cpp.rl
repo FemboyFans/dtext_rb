@@ -88,7 +88,7 @@ action mark_g2 { g2 = p; }
 action after_mention_boundary { is_mention_boundary(p[-1]) }
 action mentions_enabled { options.f_mentions }
 action in_quote { dstack_is_open(BLOCK_QUOTE) }
-action in_expand { dstack_is_open(BLOCK_EXPAND) }
+action in_section { dstack_is_open(BLOCK_SECTION) }
 action in_spoiler { dstack_is_open(BLOCK_SPOILER) }
 action save_tag_attribute { tag_attributes[{ a1, a2 }] = { b1, b2 }; }
 
@@ -165,7 +165,7 @@ delimited_mention = '<@' (nonspace nonnewline*) >mark_a1 @mark_a2 :>> '>';
 
 # The list of tags that can appear in brackets (e.g. [quote]).
 bracket_tags = (
-  'spoiler'i | 'spoilers'i | 'nodtext'i | 'quote'i | 'expand'i | 'code'i |
+  'spoiler'i | 'spoilers'i | 'nodtext'i | 'quote'i | 'section'i | 'code'i |
   'table'i | 'colgroup'i | 'col'i | 'thead'i | 'tbody'i | 'tr'i | 'th'i | 'td'i |
   'br'i | 'hr'i | 'url'i | 'tn'i | 'b'i | 'i'i | 's'i | 'u'i
 );
@@ -235,8 +235,8 @@ dmail_key = (alnum | '=' | '-')+ >mark_b1 %mark_b2;
 header_id = (alnum | [_/#!:&\-])+; # XXX '/', '#', '!', ':', and '&' are grandfathered in for old wiki versions.
 header = 'h'i [123456] >mark_a1 %mark_a2 '.' >mark_b1 >mark_b2 ws*;
 header_with_id = 'h'i [123456] >mark_a1 %mark_a2 '#' header_id >mark_b1 %mark_b2 '.' ws*;
-aliased_expand = ('[expand'i (ws* '=' ws* | ws+) ((nonnewline - ']')* >mark_a1 %mark_a2) ']')
-               | ('<expand'i (ws* '=' ws* | ws+) ((nonnewline - '>')* >mark_a1 %mark_a2) '>');
+aliased_section = ('[section'i (ws* '=' ws* | ws+) ((nonnewline - ']')* >mark_a1 %mark_a2) ']')
+               | ('<section'i (ws* '=' ws* | ws+) ((nonnewline - '>')* >mark_a1 %mark_a2) '>');
 
 list_item = '*'+ >mark_e1 %mark_e2 ws+ nonnewline+ >mark_f1 %mark_f2;
 
@@ -254,7 +254,7 @@ tag_attributes = tag_attribute*;
 open_spoilers = ('[spoiler'i 's'i? ']') | ('<spoiler'i 's'i? '>');
 open_nodtext = '[nodtext]'i | '<nodtext>'i;
 open_quote = '[quote]'i | '<quote>'i | '<blockquote>'i;
-open_expand = '[expand]'i | '<expand>'i;
+open_section = '[section]'i | '<section>'i;
 open_code = '[code]'i | '<code>'i;
 open_code_lang = '[code'i ws* '=' ws* (alnum+ >mark_a1 %mark_a2) ']' | '<code'i ws* '=' ws* (alnum+ >mark_a1 %mark_a2) '>';
 open_table = '[table]'i | '<table>'i;
@@ -280,7 +280,7 @@ open_sub = '[sub]'i | '<sub>'i;
 close_spoilers = ('[/spoiler'i 's'i? ']') | ('</spoiler'i 's'i? '>');
 close_nodtext = '[/nodtext]'i | '</nodtext>'i;
 close_quote = '[/quote'i (']' when in_quote) | '</quote'i ('>' when in_quote) | '</blockquote'i (']' when in_quote);
-close_expand = '[/expand'i (']' when in_expand) | '</expand'i ('>' when in_expand);
+close_section = '[/section'i (']' when in_section) | '</section'i ('>' when in_section);
 close_code = '[/code]'i | '</code>'i;
 close_table = '[/table]'i | '</table>'i;
 close_colgroup = '[/colgroup]'i | '</colgroup>'i;
@@ -534,7 +534,7 @@ inline := |*
   # these are block level elements that should kick us out of the inline
   # scanner
 
-  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | hr | header | header_with_id) => {
+  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_section | aliased_section | hr | header | header_with_id) => {
     dstack_close_leaf_blocks();
     fexec ts;
     fret;
@@ -551,8 +551,8 @@ inline := |*
     fret;
   };
 
-  (newline ws*)? close_expand ws* => {
-    dstack_close_until(BLOCK_EXPAND);
+  (newline ws*)? close_section ws* => {
+    dstack_close_until(BLOCK_SECTION);
     fret;
   };
 
@@ -753,23 +753,23 @@ main := |*
     append_code_fence({ b1, b2 }, { a1, a2 });
   };
 
-  open_expand space* => {
+  open_section space* => {
     dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_EXPAND, "<details>");
+    dstack_open_element(BLOCK_SECTION, "<details>");
     append_block("<summary>Show</summary><div>");
   };
 
-  aliased_expand space* => {
-    g_debug("block [expand=]");
+  aliased_section space* => {
+    g_debug("block [section=]");
     dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_EXPAND, "<details>");
+    dstack_open_element(BLOCK_SECTION, "<details>");
     append_block("<summary>");
     append_block_html_escaped({ a1, a2 });
     append_block("</summary><div>");
   };
 
-  space* close_expand ws* => {
-    dstack_close_until(BLOCK_EXPAND);
+  space* close_section ws* => {
+    dstack_close_until(BLOCK_SECTION);
   };
 
   open_nodtext blank_line? => {
@@ -810,7 +810,7 @@ main := |*
     g_debug("block char");
     fhold;
 
-    if (dstack.empty() || dstack_check(BLOCK_QUOTE) || dstack_check(BLOCK_SPOILER) || dstack_check(BLOCK_EXPAND)) {
+    if (dstack.empty() || dstack_check(BLOCK_QUOTE) || dstack_check(BLOCK_SPOILER) || dstack_check(BLOCK_SECTION)) {
       dstack_open_element(BLOCK_P, "<p>");
     }
 
@@ -1332,7 +1332,7 @@ void StateMachine::dstack_rewind() {
     case INLINE_SPOILER: append("</span>"); break;
     case BLOCK_SPOILER: append_block("</div>"); break;
     case BLOCK_QUOTE: append_block("</blockquote>"); break;
-    case BLOCK_EXPAND: append_block("</div></details>"); break;
+    case BLOCK_SECTION: append_block("</div></details>"); break;
     case BLOCK_NODTEXT: append_block("</p>"); break;
     case BLOCK_CODE: append_block("</pre>"); break;
     case BLOCK_TD: append_block("</td>"); break;
@@ -1371,12 +1371,12 @@ void StateMachine::dstack_rewind() {
   }
 }
 
-// container blocks: [spoiler], [quote], [expand], [tn]
+// container blocks: [spoiler], [quote], [section], [tn]
 // leaf blocks: [nodtext], [code], [table], [td]?, [th]?, <h1>, <p>, <li>, <ul>
 void StateMachine::dstack_close_leaf_blocks() {
   g_debug("dstack close leaf blocks");
 
-  while (!dstack.empty() && !dstack_check(BLOCK_QUOTE) && !dstack_check(BLOCK_SPOILER) && !dstack_check(BLOCK_EXPAND) && !dstack_check(BLOCK_TN)) {
+  while (!dstack.empty() && !dstack_check(BLOCK_QUOTE) && !dstack_check(BLOCK_SPOILER) && !dstack_check(BLOCK_SECTION) && !dstack_check(BLOCK_TN)) {
     dstack_rewind();
   }
 }

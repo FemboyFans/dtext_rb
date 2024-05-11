@@ -196,8 +196,8 @@ class DText
         str.gsub!(/\s*\[spoilers?\](?!\])\s*/m, "\n\n[spoiler]\n\n")
         str.gsub!(/\s*\[\/spoilers?\]\s*/m, "\n\n[/spoiler]\n\n")
         str.gsub!(/^(h[1-6]\.\s*.+)$/, "\n\n\\1\n\n")
-        str.gsub!(/\s*\[expand(\=[^\]]*)?\](?!\])\s*/m, "\n\n[expand\\1]\n\n")
-        str.gsub!(/\s*\[\/expand\]\s*/m, "\n\n[/expand]\n\n")
+        str.gsub!(/\s*\[section(\=[^\]]*)?\](?!\])\s*/m, "\n\n[section\\1]\n\n")
+        str.gsub!(/\s*\[\/section\]\s*/m, "\n\n[/section]\n\n")
         str.gsub!(/\s*\[table\](?!\])\s*/m, "\n\n[table]\n\n")
         str.gsub!(/\s*\[\/table\]\s*/m, "\n\n[/table]\n\n")
       end
@@ -281,16 +281,16 @@ class DText
             ""
           end
 
-        when /\[expand(?:\=([^\]]*))?\](?!\])/
-          stack << "expandable"
-          expand_html = '<div class="expandable"><div class="expandable-header">'
-          expand_html << "<span>#{h($1)}</span>" if $1
-          expand_html << '<input type="button" value="Show" class="expandable-button"/></div>'
-          expand_html << '<div class="expandable-content">'
-          expand_html
+        when /\[section(?:\=([^\]]*))?\](?!\])/
+          stack << "sectionable"
+          section_html = '<div class="sectionable"><div class="sectionable-header">'
+          section_html << "<span>#{h($1)}</span>" if $1
+          section_html << '<input type="button" value="Show" class="sectionable-button"/></div>'
+          section_html << '<div class="sectionable-content">'
+          section_html
 
-        when /\[\/expand\](?!\])/
-          if stack.last == "expandable"
+        when /\[\/section\](?!\])/
+          if stack.last == "sectionable"
             stack.pop
             '</div></div>'
           end
@@ -315,7 +315,7 @@ class DText
           html << "</pre>"
         elsif tag == "spoiler"
           html << "</div>"
-        elsif tag == "expandable"
+        elsif tag == "sectionable"
           html << "</div></div>"
         elsif tag == "table"
           html << "</table>"

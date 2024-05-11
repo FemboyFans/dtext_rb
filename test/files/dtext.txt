@@ -93,13 +93,13 @@ This is a block translation note.
 Here's another paragraph.
 [/tn]
 
-[expand]
+[section]
 This text is collapsed by default.
-[/expand]
+[/section]
 
-[expand=Note]
+[section=Note]
 This text is collapsed by default.
-[/expand]
+[/section]
 
 [code]
 This is [b]literal[/b] text.
