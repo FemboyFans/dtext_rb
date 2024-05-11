@@ -504,6 +504,12 @@ class DTextTest < Minitest::Test
     assert_inline_parse("<u>foo</u>", "[u]foo[/u]")
     assert_inline_parse("<u>foo</u>", "<u>foo</u>")
 
+    assert_inline_parse("<sup>foo</sup>", "[sup]foo[/sup]")
+    assert_inline_parse("<sup>foo</sup>", "<sup>foo</sup>")
+
+    assert_inline_parse("<sub>foo</sub>", "[sub]foo[/sub]")
+    assert_inline_parse("<sub>foo</sub>", "<sub>foo</sub>")
+
     assert_inline_parse("blah", "[expand]blah[/expand]")
     assert_inline_parse("blah", "[expand=title]blah[/expand]")
 

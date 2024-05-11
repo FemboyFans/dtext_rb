@@ -269,6 +269,8 @@ open_b = '[b]'i | '<b>'i | '<strong>'i;
 open_i = '[i]'i | '<i>'i | '<em>'i;
 open_s = '[s]'i | '<s>'i;
 open_u = '[u]'i | '<u>'i;
+open_sup = '[sup]'i | '<sup>'i;
+open_sub = '[sub]'i | '<sub>'i;
 
 close_spoilers = ('[/spoiler'i 's'i? ']') | ('</spoiler'i 's'i? '>');
 close_nodtext = '[/nodtext]'i | '</nodtext>'i;
@@ -287,17 +289,23 @@ close_b = '[/b]'i | '</b>'i | '</strong>'i;
 close_i = '[/i]'i | '</i>'i | '</em>'i;
 close_s = '[/s]'i | '</s>'i;
 close_u = '[/u]'i | '</u>'i;
+close_sup = '[/sup]'i | '</sup>'i;
+close_sub = '[/sub]'i | '</sub>'i;
 close_color = '[/color]'i;
 
 basic_inline := |*
-  open_b  => { dstack_open_element(INLINE_B, "<strong>"); };
-  close_b => { dstack_close_element(INLINE_B, { ts, te }); };
-  open_i  => { dstack_open_element(INLINE_I, "<em>"); };
-  close_i => { dstack_close_element(INLINE_I, { ts, te }); };
-  open_s  => { dstack_open_element(INLINE_S, "<s>"); };
-  close_s => { dstack_close_element(INLINE_S, { ts, te }); };
-  open_u  => { dstack_open_element(INLINE_U, "<u>"); };
-  close_u => { dstack_close_element(INLINE_U, { ts, te }); };
+  open_b    => { dstack_open_element(INLINE_B, "<strong>"); };
+  close_b   => { dstack_close_element(INLINE_B, { ts, te }); };
+  open_i    => { dstack_open_element(INLINE_I, "<em>"); };
+  close_i   => { dstack_close_element(INLINE_I, { ts, te }); };
+  open_s    => { dstack_open_element(INLINE_S, "<s>"); };
+  close_s   => { dstack_close_element(INLINE_S, { ts, te }); };
+  open_u    => { dstack_open_element(INLINE_U, "<u>"); };
+  close_u   => { dstack_close_element(INLINE_U, { ts, te }); };
+  open_sup  => { dstack_open_element(INLINE_SUP, "<sup>"); };
+  close_sup => { dstack_close_element(INLINE_SUP, { ts, te }); };
+  open_sub  => { dstack_open_element(INLINE_SUB, "<sub>"); };
+  close_sub => { dstack_close_element(INLINE_SUB, { ts, te }); };
   eos;
   any => { append_html_escaped(fc); };
 *|;
@@ -404,14 +412,18 @@ inline := |*
     fret;
   };
 
-  open_b  => { dstack_open_element(INLINE_B, "<strong>"); };
-  close_b => { dstack_close_element(INLINE_B, { ts, te }); };
-  open_i  => { dstack_open_element(INLINE_I, "<em>"); };
-  close_i => { dstack_close_element(INLINE_I, { ts, te }); };
-  open_s  => { dstack_open_element(INLINE_S, "<s>"); };
-  close_s => { dstack_close_element(INLINE_S, { ts, te }); };
-  open_u  => { dstack_open_element(INLINE_U, "<u>"); };
-  close_u => { dstack_close_element(INLINE_U, { ts, te }); };
+  open_b    => { dstack_open_element(INLINE_B, "<strong>"); };
+  close_b   => { dstack_close_element(INLINE_B, { ts, te }); };
+  open_i    => { dstack_open_element(INLINE_I, "<em>"); };
+  close_i   => { dstack_close_element(INLINE_I, { ts, te }); };
+  open_s    => { dstack_open_element(INLINE_S, "<s>"); };
+  close_s   => { dstack_close_element(INLINE_S, { ts, te }); };
+  open_u    => { dstack_open_element(INLINE_U, "<u>"); };
+  close_u   => { dstack_close_element(INLINE_U, { ts, te }); };
+  open_sup  => { dstack_open_element(INLINE_SUP, "<sup>"); };
+  close_sup => { dstack_close_element(INLINE_SUP, { ts, te }); };
+  open_sub  => { dstack_open_element(INLINE_SUB, "<sub>"); };
+  close_sub => { dstack_close_element(INLINE_SUB, { ts, te }); };
 
   open_tn => {
     dstack_open_element(INLINE_TN, "<span class=\"tn\">");
@@ -1289,6 +1301,8 @@ void StateMachine::dstack_rewind() {
     case INLINE_I: append("</em>"); break;
     case INLINE_U: append("</u>"); break;
     case INLINE_S: append("</s>"); break;
+    case INLINE_SUP: append("</sup>"); break;
+    case INLINE_SUB: append("</sub>"); break;
     case INLINE_TN: append("</span>"); break;
     case INLINE_CODE: append("</code>"); break;
     case INLINE_COLOR: append("</span>"); break;
