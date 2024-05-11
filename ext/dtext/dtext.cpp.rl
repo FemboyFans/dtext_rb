@@ -203,6 +203,9 @@ bbcode_title = nonnewline+ - (ws any* | any* ws);
 named_bbcode_link   = '[url'i ws* '=' ws* (bbcode_url :>> ws* ']') ws* (bbcode_title >mark_a1 %mark_a2 ws* :>> '[/url]'i);
 unnamed_bbcode_link = '[url]'i ws* unquoted_bbcode_url >mark_a1 %mark_a2 ws* :>> '[/url]'i;
 
+internal_anchor_target = (alnum | [_\-])+ >mark_b1 %mark_b2;
+internal_anchor = '[#' internal_anchor_target ']';
+
 emoticon_tags = '|' alnum | ':|' | '|_|' | '||_||' | '\\||/' | '<|>_<|>' | '>:|' | '>|3' | '|w|' | ':{' | ':}';
 wiki_prefix = alnum* >mark_a1 %mark_a2;
 wiki_suffix = alnum* >mark_e1 %mark_e2;
@@ -210,6 +213,8 @@ wiki_target = (nonpipebracket* (nonpipebracket - space) | emoticon_tags) >mark_b
 wiki_anchor_id = ([A-Z] ([ _\-]* alnum+)*) >mark_c1 %mark_c2;
 wiki_title = (ws* (nonpipebracket - space)+)* >mark_d1 %mark_d2;
 
+basic_internal_anchor_link = wiki_prefix '[[' '#' internal_anchor_target ']]' wiki_suffix;
+aliased_internal_anchor_link = wiki_prefix '[[' '#' internal_anchor_target '|' ws* wiki_title ws* ']]' wiki_suffix;
 basic_wiki_link = wiki_prefix '[[' ws* wiki_target ws* :>> ('#' wiki_anchor_id ws*)? ']]' wiki_suffix;
 aliased_wiki_link = wiki_prefix '[[' ws* wiki_target ws* :>> ('#' wiki_anchor_id ws*)? '|' ws* wiki_title ws* ']]' wiki_suffix;
 
@@ -370,6 +375,14 @@ inline := |*
     append_post_search_link({ a1, a2 }, { b1, b2 }, { c1, c2 }, { d1, d2 });
   };
 
+  basic_internal_anchor_link => {
+    append_internal_anchor_link({ a1, a2 }, { b1, b2 }, { b1, b2 }, { e1, e2 });
+  };
+
+  aliased_internal_anchor_link => {
+    append_internal_anchor_link({ a1, a2 }, { b1, b2 }, { d1, d2 }, { e1, e2 });
+  };
+
   basic_wiki_link => {
     append_wiki_link({ a1, a2 }, { b1, b2 }, { c1, c2 }, { b1, b2 }, { e1, e2 });
   };
@@ -472,6 +485,14 @@ inline := |*
     if(options.f_allow_color) {
       dstack_close_element(INLINE_COLOR, { ts, te });
     }
+  };
+
+  internal_anchor => {
+    append("<a id=\"");
+    std::string lowercased_tag = std::string(b1, b2 - b1);
+    std::transform(lowercased_tag.begin(), lowercased_tag.end(), lowercased_tag.begin(), [](unsigned char c) { return std::tolower(c); });
+    append_uri_escaped(lowercased_tag);
+    append("\"></a>");
   };
 
   open_code blank_line? => {
@@ -1086,11 +1107,6 @@ void StateMachine::append_wiki_link(const std::string_view prefix, const std::st
   // "Kantai Collection" -> "kantai_collection"
   std::transform(normalized_tag.cbegin(), normalized_tag.cend(), normalized_tag.begin(), [](unsigned char c) { return c == ' ' ? '_' : ascii_tolower(c); });
 
-  // [[2019]] -> [[~2019]]
-  if (std::all_of(normalized_tag.cbegin(), normalized_tag.cend(), ::isdigit)) {
-    normalized_tag.insert(0, "~");
-  }
-
   // Pipe trick: [[Kaga (Kantai Collection)|]] -> [[kaga_(kantai_collection)|Kaga]]
   if (title_string.empty()) {
     std::regex_replace(std::back_inserter(title_string), tag.cbegin(), tag.cend(), tag_qualifier_regex, "");
@@ -1107,9 +1123,13 @@ void StateMachine::append_wiki_link(const std::string_view prefix, const std::st
   }
 
   append("<a class=\"dtext-link dtext-wiki-link\" href=\"");
+  if (std::all_of(normalized_tag.cbegin(), normalized_tag.cend(), ::isdigit)) {
   append_relative_url("/wiki_pages/");
+  } else {
+  append_relative_url("/wiki_pages/show_or_new?title=");
+  }
   append_uri_escaped(normalized_tag);
-
+    
   if (!anchor.empty()) {
     std::string normalized_anchor(anchor);
     std::transform(normalized_anchor.begin(), normalized_anchor.end(), normalized_anchor.begin(), [](char c) { return isalnum(c) ? ascii_tolower(c) : '-'; });
@@ -1122,6 +1142,29 @@ void StateMachine::append_wiki_link(const std::string_view prefix, const std::st
   append("</a>");
 
   wiki_pages.insert(std::string(tag));
+
+  clear_matches();
+}
+
+void StateMachine::append_internal_anchor_link(const std::string_view prefix, const std::string_view anchor, const std::string_view title, const std::string_view suffix) {
+  auto anchor_string = std::string(anchor);
+  auto title_string = std::string(title);
+
+  // 19[[60s]] -> [[60s|1960s]]
+  if (!prefix.empty()) {
+    title_string.insert(0, prefix);
+  }
+
+  // [[cat]]s -> [[cat|cats]]
+  if (!suffix.empty()) {
+    title_string.append(suffix);
+  }
+
+  append("<a class=\"dtext-link dtext-internal-anchor-link\" href=\"#");
+  append_uri_escaped(anchor_string);
+  append("\">");
+  append_html_escaped(title_string);
+  append("</a>");
 
   clear_matches();
 }
