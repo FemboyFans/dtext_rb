@@ -42,7 +42,6 @@ typedef enum element_t {
   INLINE_TN,
   INLINE_CODE,
   INLINE_SPOILER,
-  INLINE_EMOJI,
   INLINE_NODTEXT,
 } element_t;
 
@@ -81,7 +80,6 @@ static const char* element_names[] = {
   "INLINE_CODE",
   "INLINE_SPOILER",
   "INLINE_NODTEXT",
-  "INLINE_EMOJI",
 };
 #endif
 
@@ -107,9 +105,6 @@ struct DTextOptions {
 
   // Links to these domains are converted to shortlinks (used so links to https://danbooru.donmai.us/posts/1234 are converted to post #1234).
   std::unordered_set<std::string> internal_domains;
-
-  // The list of emojis recognized in this piece of DText.
-  std::unordered_set<std::string_view> emojis;
 };
 
 class StateMachine {
@@ -198,7 +193,6 @@ public:
   void append_inline_code(const std::string_view language = {});
   void append_block_code(const std::string_view language = {});
   void append_media_embed(const std::string_view media_type, const std::string_view id, const std::string_view caption, bool media_gallery);
-  bool append_emoji(const std::string_view name, const std::string_view mode);
 
   void clear_matches();
 

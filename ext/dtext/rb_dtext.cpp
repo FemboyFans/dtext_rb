@@ -36,7 +36,7 @@ static auto parse_dtext(VALUE input, DTextOptions options = {}) {
   }
 }
 
-static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALUE internal_domains, VALUE emojis, VALUE f_inline, VALUE f_disable_mentions) {
+static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALUE internal_domains, VALUE f_inline, VALUE f_disable_mentions) {
   if (NIL_P(input)) {
     return Qnil;
   }
@@ -61,14 +61,6 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALU
     options.internal_domains.insert(domain);
   }
 
-  Check_Type(emojis, T_ARRAY); // raises TypeError if the argument isn't an array.
-
-  for (int i = 0; i < RARRAY_LEN(emojis); i++) {
-    VALUE rb_emoji = rb_ary_entry(emojis, i);
-    std::string_view emoji = StringValueCStr(rb_emoji); // raise ArgumentError if the emoji name contains null bytes.
-    options.emojis.insert(emoji);
-  }
-
   auto [html, _wiki_pages] = parse_dtext(input, options);
   return rb_utf8_str_new(html.c_str(), html.size());
 }
@@ -88,6 +80,6 @@ static VALUE c_parse_wiki_pages(VALUE self, VALUE input) {
 extern "C" void Init_dtext() {
   cDText = rb_define_class("DText", rb_cObject);
   cDTextError = rb_define_class_under(cDText, "Error", rb_eStandardError);
-  rb_define_singleton_method(cDText, "c_parse", c_parse, 7);
+  rb_define_singleton_method(cDText, "c_parse", c_parse, 6);
   rb_define_singleton_method(cDText, "c_parse_wiki_pages", c_parse_wiki_pages, 1);
 }
