@@ -36,7 +36,7 @@ static auto parse_dtext(VALUE input, DTextOptions options = {}) {
   }
 }
 
-static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALUE internal_domains, VALUE f_inline, VALUE f_disable_mentions, VALUE f_allow_color, VALUE max_thumbs) {
+static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALUE internal_domains, VALUE f_inline, VALUE f_disable_mentions, VALUE f_allow_color, VALUE f_qtags, VALUE max_thumbs) {
   if (NIL_P(input)) {
     return Qnil;
   }
@@ -45,6 +45,7 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALU
   options.f_inline = RTEST(f_inline);
   options.f_mentions = !RTEST(f_disable_mentions);
   options.f_allow_color = RTEST(f_allow_color);
+  options.f_qtags = RTEST(f_qtags);
   options.max_thumbs = FIX2LONG(max_thumbs);
 
   if (!NIL_P(base_url)) {
@@ -63,17 +64,19 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALU
     options.internal_domains.insert(domain);
   }
 
-  auto [dtext, wiki_pages, posts, mentions] = parse_dtext(input, options);
+  auto [dtext, wiki_pages, posts, mentions, qtags] = parse_dtext(input, options);
   VALUE retStr = rb_utf8_str_new(dtext.c_str(), dtext.size());
   VALUE retWikiPages = rb_ary_new_capa(wiki_pages.size());
   VALUE retPostIds = rb_ary_new_capa(posts.size());
   VALUE retMentions = rb_ary_new_capa(mentions.size());
+  VALUE retQtags = rb_ary_new_capa(qtags.size());
 
   VALUE ret = rb_hash_new();
   rb_hash_aset(ret, ID2SYM(rb_intern("dtext")), retStr);
   rb_hash_aset(ret, ID2SYM(rb_intern("wiki_pages")), retWikiPages);
   rb_hash_aset(ret, ID2SYM(rb_intern("post_ids")), retPostIds);
   rb_hash_aset(ret, ID2SYM(rb_intern("mentions")), retMentions);
+  rb_hash_aset(ret, ID2SYM(rb_intern("qtags")), retQtags);
 
   for (auto wiki_page : wiki_pages) {
     rb_ary_push(retWikiPages, rb_str_new(wiki_page.data(), wiki_page.size()));
@@ -87,12 +90,15 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALU
     rb_ary_push(retMentions, rb_utf8_str_new(mention.c_str(), mention.size()));
   }
 
-  return ret;
+  for (std::string qtag : qtags) {
+    rb_ary_push(retQtags, rb_utf8_str_new(qtag.c_str(), qtag.size()));
+  }
+
   return ret;
 }
 
 extern "C" void Init_dtext() {
   cDText = rb_define_class("DText", rb_cObject);
   cDTextError = rb_define_class_under(cDText, "Error", rb_eStandardError);
-  rb_define_singleton_method(cDText, "c_parse", c_parse, 8);
+  rb_define_singleton_method(cDText, "c_parse", c_parse, 9);
 }

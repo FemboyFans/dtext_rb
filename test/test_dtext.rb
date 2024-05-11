@@ -56,6 +56,14 @@ class DTextTest < Minitest::Test
     assert_equal("@" + expected_username, actual_username)
   end
 
+  def assert_qtag(qtag, input, **)
+    result = parse(input, qtags: true, **)
+    actual_qtag = Nokogiri::HTML5.fragment(result[:dtext]).css("a.dtext-qtag-link").text
+
+    assert_equal(result[:qtags].include?(qtag), true)
+    assert_equal("#" + qtag, actual_qtag)
+  end
+
   def test_relative_urls
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-post-id-link" href="http://danbooru.donmai.us/posts/1234">post #1234</a></p>', "post #1234", base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a class="dtext-link dtext-wiki-link" href="http://danbooru.donmai.us/wiki_pages/show_or_new?title=touhou">touhou</a></p>', "[[touhou]]", base_url: "http://danbooru.donmai.us")
@@ -224,6 +232,16 @@ class DTextTest < Minitest::Test
     assert_parse('<p>@bob<em>blah</em></p>', "@bob[i]blah[/i]", disable_mentions: true)
     assert_parse('<p>&lt;@bob<em>blah</em>&gt;</p>', "<@bob[i]blah[/i]>", disable_mentions: true)
     assert_parse('<p>@<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="https://twitter.com/eshaolang">@eshaolang</a></p>', '@"@eshaolang":[https://twitter.com/eshaolang]', disable_mentions: true)
+  end
+
+  def test_qtags
+    assert_qtag("ych", "#ych")
+    assert_qtag("forsale", "#forsale")
+    assert_qtag("commissionsopen", "#commissionsopen")
+    assert_qtag("furryfandom", "#furryfandom")
+    assert_qtag("furry_fandom", "#furry_fandom")
+    assert_qtag("gay", "#gay")
+    assert_qtag("aot", "#aot")
   end
 
   def test_sanitize_html_entities

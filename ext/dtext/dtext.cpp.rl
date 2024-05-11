@@ -86,7 +86,9 @@ action mark_g1 { g1 = p; }
 action mark_g2 { g2 = p; }
 
 action after_mention_boundary { is_mention_boundary(p[-1]) }
+action after_qtag_boundary { is_qtag_boundary(p[-1]) }
 action mentions_enabled { options.f_mentions }
+action qtags_enabled { options.f_qtags }
 action in_quote { dstack_is_open(BLOCK_QUOTE) }
 action in_section { dstack_is_open(BLOCK_SECTION) }
 action in_spoiler { dstack_is_open(BLOCK_SPOILER) }
@@ -162,6 +164,13 @@ bare_username = ([_.]? mention_nonboundary_char mention_char* mention_nonboundar
 
 bare_mention = ('@' when after_mention_boundary) (bare_username >mark_a1 @mark_a2);
 delimited_mention = '<@' (nonspace nonnewline*) >mark_a1 @mark_a2 :>> '>';
+
+qtag_nonboundary_char = char - punct - space - eos - utf8_boundary_char;
+qtag_char = nonspace - (punct - [._/'\-+!]);
+bare_qtag_tag = (qtag_nonboundary_char qtag_char* qtag_nonboundary_char) - (char '#') - (char* '\'' [sd]);
+
+bare_qtag = ('#' when after_qtag_boundary) (bare_qtag_tag >mark_a1 @mark_a2);
+delimited_qtag = '<#' (nonspace nonnewline*) >mark_a1 %mark_a2 :>> '>';
 
 # The list of tags that can appear in brackets (e.g. [quote]).
 bracket_tags = (
@@ -420,6 +429,10 @@ inline := |*
 
   (bare_mention | delimited_mention) when mentions_enabled => {
     append_mention({ a1, a2 + 1 });
+  };
+
+  (bare_qtag | delimited_qtag) when qtags_enabled => {
+    append_qtag({ a1, a2 + 1 });
   };
 
   newline list_item => {
@@ -958,6 +971,18 @@ void StateMachine::append_mention(const std::string_view name) {
   append("</a>");
 }
 
+void StateMachine::append_qtag(const std::string_view name) {
+  qtags.push_back(std::string{name});
+  append("<a class=\"dtext-link dtext-qtag-link\" data-qtag-name=\"");
+  append_html_escaped(name);
+  append("\" href=\"");
+  append_relative_url("/q/");
+  append_uri_escaped(name);
+  append("\">#");
+  append_html_escaped(name);
+  append("</a>");
+}
+
 void StateMachine::append_id_link(const char * title, const char * id_name, const char * url, const std::string_view id) {
   if (url[0] == '/') {
     append("<a class=\"dtext-link dtext-id-link dtext-");
@@ -1479,6 +1504,10 @@ static bool is_mention_boundary(unsigned char c) {
   }
 }
 
+static bool is_qtag_boundary(unsigned char c) {
+  return is_mention_boundary(c);
+}
+
 // Trim trailing unbalanced ')' characters from the URL.
 std::tuple<std::string_view, std::string_view> StateMachine::trim_url(const std::string_view url) {
   std::string_view trimmed = url;
@@ -1539,7 +1568,7 @@ std::string StateMachine::parse_basic_inline(const std::string_view dtext) {
 
 StateMachine::ParseResult StateMachine::parse_dtext(const std::string_view dtext, DTextOptions options) {
   StateMachine sm(dtext, dtext_en_main, options);
-  return { sm.parse(), sm.wiki_pages, sm.posts, sm.mentions };
+  return { sm.parse(), sm.wiki_pages, sm.posts, sm.mentions, sm.qtags };
 }
 
 std::string StateMachine::parse() {

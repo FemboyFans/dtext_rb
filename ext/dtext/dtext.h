@@ -103,6 +103,9 @@ struct DTextOptions {
   // If false, disallows colors.
   bool f_allow_color = false;
 
+  // If false, ignore #qtags
+  bool f_qtags = false;
+
   // If set, convert relative URLs to absolute URLs (used for sending dmails).
   std::string base_url;
 
@@ -155,8 +158,9 @@ public:
   std::unordered_set<std::string> wiki_pages;
   std::vector<long> posts;
   std::vector<std::string> mentions;
+  std::vector<std::string> qtags;
 
-  using ParseResult = std::tuple<std::string, decltype(wiki_pages), decltype(posts), decltype(mentions)>;
+  using ParseResult = std::tuple<std::string, decltype(wiki_pages), decltype(posts), decltype(mentions), decltype(qtags)>;
   static ParseResult parse_dtext(const std::string_view dtext, const DTextOptions options);
 
   std::string parse_inline(const std::string_view dtext);
@@ -189,6 +193,7 @@ public:
 
   void append_header(char header, const std::string_view id);
   void append_mention(const std::string_view name);
+  void append_qtag(const std::string_view name);
   void append_id_link(const char *title, const char *id_name, const char *url, const std::string_view id);
   void append_bare_unnamed_url(const std::string_view url);
   void append_unnamed_url(const std::string_view url);
