@@ -234,9 +234,6 @@ alnum_id = alnum+ >mark_a1 %mark_a2;
 page = digit+ >mark_b1 %mark_b2;
 dmail_key = (alnum | '=' | '-')+ >mark_b1 %mark_b2;
 
-# [ta:1234], [ti:1234], [bur:1234] (embeds a tag alias, tag implication, or bulk update request)
-tag_request_embed = '[' ('ta' | 'ti' | 'bur') >mark_b1 %mark_b2 ':' id ']';
-
 header_id = (alnum | [_/#!:&\-])+; # XXX '/', '#', '!', ':', and '&' are grandfathered in for old wiki versions.
 header = 'h'i [123456] >mark_a1 %mark_a2 '.' >mark_b1 >mark_b2 ws*;
 header_with_id = 'h'i [123456] >mark_a1 %mark_a2 '#' header_id >mark_b1 %mark_b2 '.' ws*;
@@ -482,7 +479,7 @@ inline := |*
   # these are block level elements that should kick us out of the inline
   # scanner
 
-  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | hr | header | header_with_id | tag_request_embed) => {
+  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | hr | header | header_with_id) => {
     dstack_close_leaf_blocks();
     fexec ts;
     fret;
@@ -736,11 +733,6 @@ main := |*
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_TN, "<p class=\"tn\">");
     fcall inline;
-  };
-
-  tag_request_embed => {
-    dstack_close_leaf_blocks();
-    append_tag_request_embed({ b1, b2 }, { a1, a2 });
   };
 
   ws* emoji ws* eol+ => {
@@ -1215,23 +1207,6 @@ void StateMachine::append_header(char header, const std::string_view id) {
   }
 
   header_mode = true;
-}
-
-void StateMachine::append_tag_request_embed(const std::string_view type, const std::string_view id) {
-  append_block("<tag-request-embed data-type=\"");
-
-  if (type == "ta") {
-    append_block("tag-alias");
-  } else if (type == "ti") {
-    append_block("tag-implication");
-  } else if (type == "bur") {
-    append_block("bulk-update-request");
-  }
-
-  append_block("\" data-id=\"");
-  append_block(id);
-  append_block("\">");
-  append_block("</tag-request-embed>");
 }
 
 void StateMachine::append_block(const auto s) {
