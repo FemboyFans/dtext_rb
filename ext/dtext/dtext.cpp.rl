@@ -239,6 +239,7 @@ aliased_post_search_link = search_prefix '{{' ws* tags ws* '|' ws* search_title 
 id = digit+ >mark_a1 %mark_a2;
 alnum_id = alnum+ >mark_a1 %mark_a2;
 page = digit+ >mark_b1 %mark_b2;
+version = digit+ >mark_b1 %mark_b2;
 dmail_key = (alnum | '=' | '-')+ >mark_b1 %mark_b2;
 
 header_id = (alnum | [_/#!:&\-])+; # XXX '/', '#', '!', ':', and '&' are grandfathered in for old wiki versions.
@@ -348,6 +349,7 @@ inline := |*
 
   'post #'i id                                 => { append_id_link("post", "post", "/posts/", { a1, a2 }); };
   'post changes #'i id                         => { append_id_link("post changes", "post-changes-for", "/posts/versions?search[post_id]=", { a1, a2 }); };
+  'post changes #'i id ':'i version            => { append_post_changes_version_link({ a1, a2 }, { b1, b2 }); };
   'flag #'i id                                 => { append_id_link("flag", "post-flag", "/posts/flags/", { a1, a2 }); };
   'note #'i id                                 => { append_id_link("note", "note", "/notes/", { a1, a2 }); };
   'forum'i ' 'i? 'post'i? ' #'i id             => { append_id_link("forum", "forum-post", "/forum_posts/", { a1, a2 }); };
@@ -1166,7 +1168,7 @@ void StateMachine::append_wiki_link(const std::string_view prefix, const std::st
     title_string.append(suffix);
   }
 
-  append("<a class=\"dtext-link dtext-wiki-link\" href=\"");
+  append("<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"");
   if (std::all_of(normalized_tag.cbegin(), normalized_tag.cend(), ::isdigit)) {
   append_relative_url("/wiki_pages/");
   } else {
@@ -1222,9 +1224,9 @@ void StateMachine::append_paged_link(const char * title, const std::string_view 
   append("\">");
   append(title);
   append(id);
-  append("/p");
+  append(" (page ");
   append(page);
-  append("</a>");
+  append(")</a>");
 }
 
 void StateMachine::append_dmail_key_link(const std::string_view dmail_id, const std::string_view dmail_key) {
@@ -1236,6 +1238,18 @@ void StateMachine::append_dmail_key_link(const std::string_view dmail_id, const 
   append("\">");
   append("dmail #");
   append(dmail_id);
+  append("</a>");
+}
+
+void StateMachine::append_post_changes_version_link(const std::string_view post_id, const std::string_view version) {
+  append("<a class=\"dtext-link dtext-id-link dtext-post-changes-for-id-version-link\" href=\"");
+  append_relative_url("/posts/versions?search[post_id]=");
+  append_uri_escaped(post_id);
+  append("&search[version]=");
+  append_uri_escaped(version);
+  append("\">");
+  append("post changes #");
+  append_uri_escaped(post_id);
   append("</a>");
 }
 
