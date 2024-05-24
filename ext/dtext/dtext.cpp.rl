@@ -254,8 +254,6 @@ list_item = '*'+ >mark_e1 %mark_e2 ws+ nonnewline+ >mark_f1 %mark_f2;
 
 hr = ws* ('[hr]'i | '<hr>'i) ws* eol+;
 
-code_fence = ('```' ws* (alnum* >mark_a1 %mark_a2) ws* eol) (any* >mark_b1 %mark_b2) :>> (eol '```' ws* eol);
-
 double_quoted_value = '"' (nonnewline+ >mark_b1 %mark_b2) :>> '"';
 single_quoted_value = "'" (nonnewline+ >mark_b1 %mark_b2) :>> "'";
 unquoted_value = alnum+ >mark_b1 %mark_b2;
@@ -329,6 +327,15 @@ basic_inline := |*
 *|;
 
 inline := |*
+  '\\`' => {
+    append("`");
+  };
+
+  '`' => {
+    append("<span class=\"inline-code\">");
+    fcall inline_code;
+  };
+
   'thumb #'i id => {
     if(posts.size() < options.max_thumbs) {
       long post_id = strtol(a1, (char**)&a2, 10);
@@ -552,7 +559,7 @@ inline := |*
   # these are block level elements that should kick us out of the inline
   # scanner
 
-  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_section | open_section_expanded | open_aliased_section | open_aliased_section_expanded | hr | header | header_with_id) => {
+  newline (open_code | open_code_lang | open_nodtext | open_table | open_section | open_section_expanded | open_aliased_section | open_aliased_section_expanded | hr | header | header_with_id) => {
     dstack_close_leaf_blocks();
     fexec ts;
     fret;
@@ -642,6 +649,21 @@ inline := |*
 
   alnum+ | utf8char+ => {
     append({ ts, te });
+  };
+
+  any => {
+    append_html_escaped(fc);
+  };
+*|;
+
+inline_code := |*
+  '\\`' => {
+    append("`");
+  };
+
+  '`' => {
+    append("</span>");
+    fret;
   };
 
   any => {
@@ -764,11 +786,6 @@ main := |*
   open_code_lang blank_line? => {
     append_block_code({ a1, a2 });
     fcall code;
-  };
-
-  code_fence => {
-    dstack_close_leaf_blocks();
-    append_code_fence({ b1, b2 }, { a1, a2 });
   };
 
   open_section space* => {
@@ -1251,20 +1268,6 @@ void StateMachine::append_post_changes_version_link(const std::string_view post_
   append("post changes #");
   append_uri_escaped(post_id);
   append("</a>");
-}
-
-void StateMachine::append_code_fence(const std::string_view code, const std::string_view language) {
-  if (language.empty()) {
-    append_block("<pre>");
-    append_html_escaped(code);
-    append_block("</pre>");
-  } else {
-    append_block("<pre class=\"language-");
-    append_html_escaped(language);
-    append_block("\">");
-    append_html_escaped(code);
-    append_block("</pre>");
-  }
 }
 
 void StateMachine::append_inline_code(const std::string_view language) {
