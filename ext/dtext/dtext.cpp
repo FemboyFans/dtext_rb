@@ -7508,7 +7508,7 @@ tr2342:
 #line 74 "ext/dtext/dtext.cpp.rl"
 	{ a2 = p; }
 #line 388 "ext/dtext/dtext.cpp.rl"
-	{( te) = ( p);( p)--;{ append_id_link("commit", "github-commit", "https://github.com/PawsMovin/PawsMovin/commit/", { a1, a2 }); }}
+	{( te) = ( p);( p)--;{ append_id_link("commit", "github-commit", "https://github.com/FemboyFans/FemboyFans/commit/", { a1, a2 }); }}
 	goto st1766;
 tr2350:
 #line 74 "ext/dtext/dtext.cpp.rl"
@@ -7568,7 +7568,7 @@ tr2405:
 #line 74 "ext/dtext/dtext.cpp.rl"
 	{ a2 = p; }
 #line 386 "ext/dtext/dtext.cpp.rl"
-	{( te) = ( p);( p)--;{ append_id_link("issue", "github", "https://github.com/PawsMovin/PawsMovin/issues/", { a1, a2 }); }}
+	{( te) = ( p);( p)--;{ append_id_link("issue", "github", "https://github.com/FemboyFans/FemboyFans/issues/", { a1, a2 }); }}
 	goto st1766;
 tr2410:
 #line 74 "ext/dtext/dtext.cpp.rl"
@@ -7610,7 +7610,7 @@ tr2438:
 #line 74 "ext/dtext/dtext.cpp.rl"
 	{ a2 = p; }
 #line 387 "ext/dtext/dtext.cpp.rl"
-	{( te) = ( p);( p)--;{ append_id_link("pull", "github-pull", "https://github.com/PawsMovin/PawsMovin/pull/", { a1, a2 }); }}
+	{( te) = ( p);( p)--;{ append_id_link("pull", "github-pull", "https://github.com/FemboyFans/FemboyFans/pull/", { a1, a2 }); }}
 	goto st1766;
 tr2446:
 #line 74 "ext/dtext/dtext.cpp.rl"
