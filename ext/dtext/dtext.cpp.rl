@@ -219,7 +219,7 @@ emoticon_tags = '|' alnum | ':|' | '|_|' | '||_||' | '\\||/' | '<|>_<|>' | '>:|'
 wiki_prefix = alnum* >mark_a1 %mark_a2;
 wiki_suffix = alnum* >mark_e1 %mark_e2;
 wiki_target = (nonpipebracket* (nonpipebracket - space) | emoticon_tags) >mark_b1 %mark_b2;
-wiki_anchor_id = ([A-Z] ([ _\-]* alnum+)*) >mark_c1 %mark_c2;
+wiki_anchor_id = (alnum ([ _\-]* alnum+)*) >mark_c1 %mark_c2;
 wiki_title = (ws* (nonpipebracket - space)+)* >mark_d1 %mark_d2;
 
 basic_internal_anchor_link = wiki_prefix '[[' '#' internal_anchor_target ']]' wiki_suffix;
@@ -1196,7 +1196,7 @@ void StateMachine::append_wiki_link(const std::string_view prefix, const std::st
   if (!anchor.empty()) {
     std::string normalized_anchor(anchor);
     std::transform(normalized_anchor.begin(), normalized_anchor.end(), normalized_anchor.begin(), [](char c) { return isalnum(c) ? ascii_tolower(c) : '-'; });
-    append_html_escaped("#dtext-");
+    append_html_escaped("#");
     append_html_escaped(normalized_anchor);
   }
 
