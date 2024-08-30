@@ -458,7 +458,7 @@ class DTextTest < Minitest::Test
 
     assert_parse('<h1><em>header</em></h1><p>blah</p>', "h1. [i]header\nblah")
     assert_parse('<h1><span class="spoiler">header</span></h1><p>blah</p>', "h1. [spoiler]header\nblah")
-    assert_parse('<h1><span class="tn">header</span></h1><p>blah</p>', "h1. [tn]header\nblah")
+    assert_parse('<h1><span class="dtext-note">header</span></h1><p>blah</p>', "h1. [note]header\nblah")
     assert_parse('<h1><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://example.com">http://example.com</a></h1><p>blah</p>', %{h1. http://example.com\nblah})
     assert_parse('<h1><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com">example</a></h1><p>blah</p>', %{h1. "example":http://example.com\nblah})
 
@@ -511,15 +511,15 @@ class DTextTest < Minitest::Test
     assert_inline_parse("blah", "[section=title]blah[/section]")
   end
 
-  def test_inline_tn
-    assert_parse('<p>foo <span class="tn">bar</span> baz</p>', "foo [tn]bar[/tn] baz")
-    assert_parse('<p>foo <span class="tn">bar</span> baz</p>', "foo <tn>bar</tn> baz")
+  def test_inline_note
+    assert_parse('<p>foo <span class="dtext-note">bar</span> baz</p>', "foo [note]bar[/note] baz")
+    assert_parse('<p>foo <span class="dtext-note">bar</span> baz</p>', "foo <note>bar</note> baz")
 
-    assert_parse('<p>foo bar[/tn] baz</p>', "foo bar[/tn] baz")
-    assert_parse('<p>foo bar&lt;/tn&gt; baz</p>', "foo bar</tn> baz")
-    assert_parse('<ul><li>foo [/tn] bar</li></ul>', "* foo [/tn] bar")
-    assert_parse('<h4>foo [/tn] bar</h4>', "h4. foo [/tn] bar")
-    assert_parse('<blockquote><p>foo [/tn] bar</p></blockquote>', "[quote]\nfoo [/tn] bar\n[/quote]")
+    assert_parse('<p>foo bar[/note] baz</p>', "foo bar[/note] baz")
+    assert_parse('<p>foo bar&lt;/note&gt; baz</p>', "foo bar</note> baz")
+    assert_parse('<ul><li>foo [/note] bar</li></ul>', "* foo [/note] bar")
+    assert_parse('<h4>foo [/note] bar</h4>', "h4. foo [/note] bar")
+    assert_parse('<blockquote><p>foo [/note] bar</p></blockquote>', "[quote]\nfoo [/note] bar\n[/quote]")
   end
 
   def test_anchors
@@ -527,12 +527,12 @@ class DTextTest < Minitest::Test
     assert_parse_extra(wiki_pages: [], dtext: '<p><a class="dtext-link dtext-internal-anchor-link" href="#test">test</a></p>', input: "[[#test]]")
   end
 
-  def test_block_tn
-    assert_parse('<p class="tn">bar</p>', "[tn]bar[/tn]")
-    assert_parse('<p class="tn">bar</p>', "<tn>bar</tn>")
+  def test_block_note
+    assert_parse('<p class="dtext-note">bar</p>', "[note]bar[/note]")
+    assert_parse('<p class="dtext-note">bar</p>', "<note>bar</note>")
 
-    assert_parse('<p>foo <strong>bar</strong></p><p class="tn">bar</p>', "foo [b]bar\n\n[tn]bar[/tn]")
-    assert_parse('<p>foo <strong>bar<br><span class="tn"><br>bar</span></strong></p>', "foo [b]bar\n[tn]\nbar\n[/tn]") # XXX should be treated as a block tag?
+    assert_parse('<p>foo <strong>bar</strong></p><p class="dtext-note">bar</p>', "foo [b]bar\n\n[note]bar[/note]")
+    assert_parse('<p>foo <strong>bar<br><span class="dtext-note"><br>bar</span></strong></p>', "foo [b]bar\n[note]\nbar\n[/note]") # XXX should be treated as a block tag?
   end
 
   def test_quote_blocks
@@ -560,7 +560,7 @@ class DTextTest < Minitest::Test
 
     assert_parse("<p>blah</p><blockquote><p>blah</p></blockquote>", "blah\n[quote]\nblah\n[/quote]")
     assert_parse("<p><strong>unclosed</strong></p><blockquote><p>blah</p></blockquote>", "[b]unclosed\n[quote]\nblah\n[/quote]")
-    assert_parse('<p>blah<br><span class="tn"></span></p><blockquote><p>blah</p></blockquote><p>[/tn]</p>', "blah\n[tn]\n[quote]\nblah[/quote]\n[/tn]") # XXX should strip <br> before [tn]
+    assert_parse('<p>blah<br><span class="dtext-note"></span></p><blockquote><p>blah</p></blockquote><p>[/note]</p>', "blah\n[note]\n[quote]\nblah[/quote]\n[/note]") # XXX should strip <br> before [note]
     assert_parse('<p><br></p><blockquote><p>blah</p></blockquote>', "[br]\n[quote]\nblah\n[/quote]")
 
     assert_parse('<blockquote><div class="spoiler"><p>blah</p></div></blockquote>', "[quote][spoiler]blah[/spoiler] [/quote]")
@@ -1067,7 +1067,7 @@ class DTextTest < Minitest::Test
     assert_parse('<p>https://user:pass@example.com</p>', 'https://user:pass@example.com') # XXX should work
 
     # trailing CJK
-    assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://www.toranoana.jp/mailorder/article/04/0030/25/75/040030257564.html">http://www.toranoana.jp/mailorder/article/04/0030/25/75/040030257564.html</a>」<span class="tn">Author</span></p>', 'http://www.toranoana.jp/mailorder/article/04/0030/25/75/040030257564.html」[tn]Author')
+    assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://www.toranoana.jp/mailorder/article/04/0030/25/75/040030257564.html">http://www.toranoana.jp/mailorder/article/04/0030/25/75/040030257564.html</a>」<span class="dtext-note">Author</span></p>', 'http://www.toranoana.jp/mailorder/article/04/0030/25/75/040030257564.html」[note]Author')
     assert_parse('<p>の「<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://color-t.net/">http://color-t.net/</a>」か</p>', 'の「http://color-t.net/」か')
     assert_parse('<p>続・小鳥さんのGM奮闘記（<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://www.nicovideo.jp/watch/sm9767866">http://www.nicovideo.jp/watch/sm9767866</a>）の舞さんを描かせてもらいました。</p>', '続・小鳥さんのGM奮闘記（http://www.nicovideo.jp/watch/sm9767866）の舞さんを描かせてもらいました。')
   end
@@ -1257,11 +1257,11 @@ class DTextTest < Minitest::Test
 
     assert_parse('<p>inline <em>foo</em></p>', "inline [i]foo\n")
     assert_parse('<p>inline <span class="spoiler">blah</span></p>', "inline [spoiler]blah\n")
-    assert_parse('<p>inline <span class="tn">blah</span></p>', "inline [tn]blah\n")
+    assert_parse('<p>inline <span class="dtext-note">blah</span></p>', "inline [note]blah\n")
     assert_parse("<p>inline <code>blah\n</code></p>", "inline [code]blah\n")
     assert_parse("<p>inline blah\n</p>", "inline [nodtext]blah\n")
 
-    assert_parse('<p class="tn">foo</p>', "[tn]foo\n")
+    assert_parse('<p class="dtext-note">foo</p>', "[note]foo\n")
     assert_parse("<pre>foo\n</pre>", "[code]foo\n")
     assert_parse("<blockquote><p>foo</p></blockquote>", "[quote]foo\n")
     assert_parse("<details><summary></summary><div><p>foo</p></div></details>", "[section]foo\n")
@@ -1273,7 +1273,7 @@ class DTextTest < Minitest::Test
     assert_parse('<p>[/th]<br>blah</p>', "[/th]\nblah\n")
     assert_parse('<p>[/td]<br>blah</p>', "[/td]\nblah\n")
 
-    assert_parse('<p>[/tn]<br>blah</p>', "[/tn]\nblah\n")
+    assert_parse('<p>[/note]<br>blah</p>', "[/note]\nblah\n")
     assert_parse('<p>[/spoiler]<br>blah</p>', "[/spoiler]\nblah\n")
     assert_parse('<p>[/section]<br>blah</p>', "[/section]\nblah\n")
 
@@ -1284,14 +1284,14 @@ class DTextTest < Minitest::Test
 
     assert_parse('<table class="striped"><tr><td><br>foo</td></tr></table>', "\n[table]\n[tr]\n[td]\nfoo\n[/td]\n[/tr]\n[/table]\n") # XXX wrong
 
-    assert_parse('<p class="tn">foo</p>', "[tn]foo\n[/tn]")
-    assert_parse('<p class="tn"><br>foo</p>', "[tn]\nfoo\n[/tn]") # XXX wrong
-    assert_parse('<p class="tn"><br>foo</p>', "[tn]\nfoo[/tn]") # XXX wrong
+    assert_parse('<p class="dtext-note">foo</p>', "[note]foo\n[/note]")
+    assert_parse('<p class="dtext-note"><br>foo</p>', "[note]\nfoo\n[/note]") # XXX wrong
+    assert_parse('<p class="dtext-note"><br>foo</p>', "[note]\nfoo[/note]") # XXX wrong
 
-    assert_parse('<p>inline <span class="tn">foo</span></p>', "inline [tn]foo\n[/tn]")
-    assert_parse('<p>inline <span class="tn">foo</span> bar</p>', "inline [tn]foo\n[/tn] bar") # XXX wrong?
-    assert_parse('<p>inline <span class="tn"><br>foo</span> bar</p>', "inline [tn]\nfoo[/tn] bar") # XXX wrong?
-    assert_parse('<p>inline <span class="tn"><br>foo</span> bar</p>', "inline [tn]\nfoo\n[/tn] bar") # XXX wrong?
+    assert_parse('<p>inline <span class="dtext-note">foo</span></p>', "inline [note]foo\n[/note]")
+    assert_parse('<p>inline <span class="dtext-note">foo</span> bar</p>', "inline [note]foo\n[/note] bar") # XXX wrong?
+    assert_parse('<p>inline <span class="dtext-note"><br>foo</span> bar</p>', "inline [note]\nfoo[/note] bar") # XXX wrong?
+    assert_parse('<p>inline <span class="dtext-note"><br>foo</span> bar</p>', "inline [note]\nfoo\n[/note] bar") # XXX wrong?
 
     assert_parse('<pre>blah</pre><p>blah</p>', "[code]blah[/code] \nblah")
 
@@ -1614,7 +1614,7 @@ class DTextTest < Minitest::Test
 
     assert_parse("<blockquote><hr></blockquote>", "[quote]\n[hr]\n[/quote]")
     assert_parse('<div class="spoiler"><hr></div>', "[spoiler]\n[hr]\n[/spoiler]")
-    assert_parse('<p class="tn"><hr></p>', "[tn]\n[hr]\n[/tn]")
+    assert_parse('<p class="dtext-note"><hr></p>', "[note]\n[hr]\n[/note]")
     assert_parse("<details><summary></summary><div><hr></div></details>", "[section]\n[hr]\n[/section]")
     assert_parse("<pre>[hr]</pre>", "[code]\n[hr]\n[/code]")
     assert_parse("<p>[hr]</p>", "[nodtext]\n[hr]\n[/nodtext]")
@@ -1632,13 +1632,13 @@ class DTextTest < Minitest::Test
     assert_parse("<details><summary></summary><div><hr></div></details>", "[section]\n[hr]\n[/section]")
 
     assert_parse('<p>inline <strong></strong></p><hr><p>[/b]</p>', "inline [b]\n[hr]\n[/b]")
-    assert_parse('<p>inline <span class="tn"></span></p><hr><p>[/tn]</p>', "inline [tn]\n[hr]\n[/tn]")
+    assert_parse('<p>inline <span class="dtext-note"></span></p><hr><p>[/note]</p>', "inline [note]\n[hr]\n[/note]")
 
     assert_parse('<p>inline <span class="spoiler"></span></p><hr><p>[/spoiler]</p>', "inline [spoiler]\n[hr]\n[/spoiler]")
 
     assert_parse('<p>foo <strong>bar</strong></p><hr>', "foo [b]bar\n[hr]")
 
-    #assert_parse('<p class="tn"><hr></p>', "[tn][hr][/tn]") # XXX shouldn't work
+    #assert_parse('<p class="dtext-note"><hr></p>', "[note][hr][/note]") # XXX shouldn't work
   end
 
   def test_br
@@ -1717,7 +1717,7 @@ class DTextTest < Minitest::Test
     assert_parse('<h1>[b]not bold</h1>', "h1. [nodtext][b]not bold")
     assert_parse('<ul><li>[b]not bold</li></ul>', "* [nodtext][b]not bold")
     assert_parse('<div class="spoiler"><p>[b]not bold</p></div>', "[spoiler][nodtext][b]not bold")
-    assert_parse('<p class="tn">[b]not bold</p>', "[tn][nodtext][b]not bold")
+    assert_parse('<p class="dtext-note">[b]not bold</p>', "[note][nodtext][b]not bold")
     assert_parse('<blockquote><p>[b]not bold</p></blockquote>', "[quote][nodtext][b]not bold")
     assert_parse('<p>foo  bar</p>', "foo [nodtext] bar")
     assert_parse('<p>foo bar</p>', "foo [nodtext]bar[/nodtext]")
@@ -1760,7 +1760,7 @@ class DTextTest < Minitest::Test
     assert_parse('<p>inline &lt;/th&gt;</p>', 'inline </th>')
     assert_parse('<p>inline &lt;/td&gt;</p>', 'inline </td>')
 
-    assert_parse('<p>inline &lt;/tn&gt;</p>', 'inline </tn>')
+    assert_parse('<p>inline &lt;/note&gt;</p>', 'inline </note>')
     assert_parse('<p>inline &lt;/spoiler&gt;</p>', 'inline </spoiler>')
     assert_parse('<p>inline &lt;/section&gt;</p>', 'inline </section>')
     assert_parse('<p>inline &lt;/quote&gt;</p>', 'inline </quote>')
@@ -1768,7 +1768,7 @@ class DTextTest < Minitest::Test
     assert_parse('<p>&lt;/spoiler&gt;</p>', '</spoiler>')
     assert_parse('<p>&lt;/section&gt;</p>', '</section>')
     assert_parse('<p>&lt;/quote&gt;</p>', '</quote>')
-    assert_parse('<p>&lt;/tn&gt;</p>', '</tn>')
+    assert_parse('<p>&lt;/note&gt;</p>', '</note>')
     assert_parse('<p>&lt;/spoiler&gt;</p>', '</spoiler>')
     assert_parse('<p>&lt;/section&gt;</p>', '</section>')
     assert_parse('<p>&lt;/quote&gt;</p>', '</quote>')

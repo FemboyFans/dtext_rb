@@ -8,7 +8,7 @@ This is a third line.
 [i]italics[/i]
 [s]strikethrough[/s]
 [u]underline[/u]
-[tn]note[/tn]
+[note]note[/note]
 [spoilers]spoilers[/spoilers]
 [code]code[/code]
 [nodtext]nodtext[/nodtext]
@@ -87,11 +87,11 @@ This is a block spoiler.
 Here's another paragraph.
 [/spoiler]
 
-[tn]
-This is a block translation note.
+[note]
+This is a block note.
 
 Here's another paragraph.
-[/tn]
+[/note]
 
 [section]
 This text is collapsed by default.

@@ -44,7 +44,7 @@ class DText
       str.gsub!(/\[i\](.+?)\[\/i\]/i, '<em>\1</em>')
       str.gsub!(/\[s\](.+?)\[\/s\]/i, '<s>\1</s>')
       str.gsub!(/\[u\](.+?)\[\/u\]/i, '<u>\1</u>')
-      str.gsub!(/\[tn\](.+?)\[\/tn\]/i, '<p class="tn">\1</p>')
+      str.gsub!(/\[note\](.+?)\[\/note\]/i, '<p class="dtext-note">\1</p>')
 
       str = parse_mentions(str)
       str = parse_links(str)

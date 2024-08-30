@@ -176,7 +176,7 @@ delimited_qtag = '<#' (nonspace nonnewline*) >mark_a1 %mark_a2 :>> '>';
 bracket_tags = (
   'spoiler'i | 'spoilers'i | 'nodtext'i | 'quote'i | 'section'i | 'code'i |
   'table'i | 'colgroup'i | 'col'i | 'thead'i | 'tbody'i | 'tr'i | 'th'i | 'td'i |
-  'br'i | 'hr'i | 'url'i | 'tn'i | 'b'i | 'i'i | 's'i | 'u'i
+  'br'i | 'hr'i | 'url'i | 'note'i | 'b'i | 'i'i | 's'i | 'u'i
 );
 
 http = 'http'i 's'i? '://';
@@ -280,7 +280,7 @@ open_br = '[br]'i | '<br>'i;
 open_color = '[color='i ([a-z]+|'#'i[0-9a-fA-F]{3,6}) >mark_a1 %mark_a2 ']';
 open_color_typed = '[color='i ('gen'i('eral'i)?|'art'i('ist'i)?|'va'|'voice-actor'i|'oc'i|'ch'i('ar'i('acter'i)?)?|'co'i('py'i('right'i)?)?|'spec'i('ies'i)?|'inv'i('alid'i)?|'meta'i|'lor'i('e'i)?|'gender'i|'s'i('afe'i)?|'q'i('uestionable'i)?|'e'i('xplicit'i)?) >mark_a1 %mark_a2 ']';
 
-open_tn = '[tn]'i | '<tn>'i;
+open_note = '[note]'i | '<note>'i;
 open_b = '[b]'i | '<b>'i | '<strong>'i;
 open_i = '[i]'i | '<i>'i | '<em>'i;
 open_s = '[s]'i | '<s>'i;
@@ -300,7 +300,7 @@ close_tbody = '[/tbody]'i | '</tbody>'i;
 close_tr = '[/tr]'i | '</tr>'i;
 close_th = '[/th]'i | '</th>'i;
 close_td = '[/td]'i | '</td>'i;
-close_tn = '[/tn]'i | '</tn>'i;
+close_note = '[/note]'i | '</note>'i;
 close_b = '[/b]'i | '</b>'i | '</strong>'i;
 close_i = '[/i]'i | '</i>'i | '</em>'i;
 close_s = '[/s]'i | '</s>'i;
@@ -463,16 +463,16 @@ inline := |*
   open_sub  => { dstack_open_element(INLINE_SUB, "<sub>"); };
   close_sub => { dstack_close_element(INLINE_SUB, { ts, te }); };
 
-  open_tn => {
-    dstack_open_element(INLINE_TN, "<span class=\"tn\">");
+  open_note => {
+    dstack_open_element(INLINE_NOTE, "<span class=\"dtext-note\">");
   };
 
-  newline* close_tn => {
-    g_debug("inline [/tn]");
+  newline* close_note => {
+    g_debug("inline [/note]");
 
-    if (dstack_check(INLINE_TN)) {
-      dstack_close_element(INLINE_TN, { ts, te });
-    } else if (dstack_close_element(BLOCK_TN, { ts, te })) {
+    if (dstack_check(INLINE_NOTE)) {
+      dstack_close_element(INLINE_NOTE, { ts, te });
+    } else if (dstack_close_element(BLOCK_NOTE, { ts, te })) {
       fret;
     }
   };
@@ -822,9 +822,9 @@ main := |*
     fcall table;
   };
 
-  open_tn => {
+  open_note => {
     dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_TN, "<p class=\"tn\">");
+    dstack_open_element(BLOCK_NOTE, "<p class=\"dtext-note\">");
     fcall inline;
   };
 
@@ -1407,11 +1407,11 @@ void StateMachine::dstack_rewind() {
     case INLINE_S: append("</s>"); break;
     case INLINE_SUP: append("</sup>"); break;
     case INLINE_SUB: append("</sub>"); break;
-    case INLINE_TN: append("</span>"); break;
+    case INLINE_NOTE: append("</span>"); break;
     case INLINE_CODE: append("</code>"); break;
     case INLINE_COLOR: append("</span>"); break;
 
-    case BLOCK_TN: append_block("</p>"); break;
+    case BLOCK_NOTE: append_block("</p>"); break;
     case BLOCK_TABLE: append_block("</table>"); break;
     case BLOCK_COLGROUP: append_block("</colgroup>"); break;
     case BLOCK_THEAD: append_block("</thead>"); break;
@@ -1432,12 +1432,12 @@ void StateMachine::dstack_rewind() {
   }
 }
 
-// container blocks: [spoiler], [quote], [section], [tn]
+// container blocks: [spoiler], [quote], [section], [note]
 // leaf blocks: [nodtext], [code], [table], [td]?, [th]?, <h1>, <p>, <li>, <ul>
 void StateMachine::dstack_close_leaf_blocks() {
   g_debug("dstack close leaf blocks");
 
-  while (!dstack.empty() && !dstack_check(BLOCK_QUOTE) && !dstack_check(BLOCK_SPOILER) && !dstack_check(BLOCK_SECTION) && !dstack_check(BLOCK_TN)) {
+  while (!dstack.empty() && !dstack_check(BLOCK_QUOTE) && !dstack_check(BLOCK_SPOILER) && !dstack_check(BLOCK_SECTION) && !dstack_check(BLOCK_NOTE)) {
     dstack_rewind();
   }
 }
