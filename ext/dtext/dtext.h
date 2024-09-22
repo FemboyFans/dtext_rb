@@ -46,6 +46,7 @@ typedef enum element_t {
   INLINE_CODE,
   INLINE_SPOILER,
   INLINE_NODTEXT,
+  INLINE_TOPIC,
 } element_t;
 
 #ifdef DEBUG
@@ -86,6 +87,7 @@ static const char* element_names[] = {
   "INLINE_CODE",
   "INLINE_SPOILER",
   "INLINE_NODTEXT",
+  "INLINE_TOPIC",
 };
 #endif
 
@@ -203,6 +205,7 @@ public:
   void append_absolute_link(const std::string_view url, const std::string_view title, bool internal_url = false, bool escape_title = true);
   void append_post_search_link(const std::string_view prefix, const std::string_view search, const std::string_view title, const std::string_view suffix);
   void append_section(const std::string_view summary, bool initially_open);
+  void append_topic(const std::string_view id);
   void append_wiki_link(const std::string_view prefix, const std::string_view tag, const std::string_view anchor, const std::string_view title, const std::string_view suffix);
   void append_internal_anchor_link(const std::string_view prefix, const std::string_view anchor, const std::string_view title, const std::string_view suffix); 
   void append_paged_link(const char *title, const std::string_view id, const char *tag, const char *href, const char *param, const std::string_view page);

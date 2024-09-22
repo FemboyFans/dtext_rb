@@ -1403,6 +1403,8 @@ class DTextTest < Minitest::Test
 
   def test_forum_links
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-topic-id-link" href="/forum_topics/1234?page=4">topic #1234 (page 4)</a></p>', "topic #1234/p4")
+    assert_parse('<p><a class="dtext-link dtext-forum-topic-link" href="/forum_topics/1234">Topic: Topic Name</a></p>', "[topic=1234]Topic Name[/topic]")
+    assert_parse('<p><a class="dtext-link dtext-forum-topic-link" href="/forum_topics/1234">Topic: Topic Name</a></p>', "[topic=1234]Topic Name")
   end
 
   def test_id_links

@@ -249,6 +249,7 @@ open_aliased_section = ('[section'i (ws* '=' ws* | ws+) ((nonnewline - ']')* >ma
                | ('<section'i (ws* '=' ws* | ws+) ((nonnewline - '>')* >mark_a1 %mark_a2) '>');
 open_aliased_section_expanded = ('[section,expanded'i (ws* '=' ws* | ws+) ((nonnewline - ']')* >mark_a1 %mark_a2) ']')
                | ('<section,expanded'i (ws* '=' ws* | ws+) ((nonnewline - '>')* >mark_a1 %mark_a2) '>');
+open_topic = ('[topic='i id ']') | ('<topic='i id '>');
 
 list_item = '*'+ >mark_e1 %mark_e2 ws+ nonnewline+ >mark_f1 %mark_f2;
 
@@ -292,6 +293,7 @@ close_spoilers = ('[/spoiler'i 's'i? ']') | ('</spoiler'i 's'i? '>');
 close_nodtext = '[/nodtext]'i | '</nodtext>'i;
 close_quote = '[/quote'i (']' when in_quote) | '</quote'i ('>' when in_quote) | '</blockquote'i (']' when in_quote);
 close_section = '[/section'i (']' when in_section) | '</section'i ('>' when in_section);
+close_topic = '[/topic]'i | '</topic>'i;
 close_code = '[/code]'i | '</code>'i;
 close_table = '[/table]'i | '</table>'i;
 close_colgroup = '[/colgroup]'i | '</colgroup>'i;
@@ -538,6 +540,19 @@ inline := |*
 
   open_spoilers => {
     dstack_open_element(INLINE_SPOILER, "<span class=\"spoiler\">");
+  };
+
+  open_topic => {
+    dstack_push(INLINE_TOPIC);
+    append_topic({ a1, a2 });
+  };
+
+  close_topic => {
+    if (dstack_is_open(INLINE_TOPIC)) {
+      dstack_close_element(INLINE_TOPIC, { ts, te });
+    } else {
+      append_html_escaped({ ts, te });
+    }
   };
 
   newline? close_spoilers => {
@@ -1163,6 +1178,14 @@ void StateMachine::append_section(const std::string_view summary, bool initially
   append_block("</summary><div>");
 }
 
+void StateMachine::append_topic(const std::string_view id) {
+  append("<a class=\"dtext-link dtext-forum-topic-link\" href=\"");
+  append_relative_url("/forum_topics/");
+  append_uri_escaped(id);
+  append("\">");
+  append("Topic: ");
+}
+
 void StateMachine::append_wiki_link(const std::string_view prefix, const std::string_view tag, const std::string_view anchor, const std::string_view title, const std::string_view suffix) {
   auto normalized_tag = std::string(tag);
   auto title_string = std::string(title);
@@ -1410,6 +1433,7 @@ void StateMachine::dstack_rewind() {
     case INLINE_NOTE: append("</span>"); break;
     case INLINE_CODE: append("</code>"); break;
     case INLINE_COLOR: append("</span>"); break;
+    case INLINE_TOPIC: append("</a>"); break;
 
     case BLOCK_NOTE: append_block("</p>"); break;
     case BLOCK_TABLE: append_block("</table>"); break;
