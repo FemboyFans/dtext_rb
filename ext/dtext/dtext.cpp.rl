@@ -361,9 +361,10 @@ inline := |*
   'post changes #'i id ':'i version            => { append_post_changes_version_link({ a1, a2 }, { b1, b2 }); };
   'flag #'i id                                 => { append_id_link("flag", "post-flag", "/posts/flags/", { a1, a2 }); };
   'note #'i id                                 => { append_id_link("note", "note", "/notes/", { a1, a2 }); };
-  'forum'i ' 'i? 'post'i? ' #'i id             => { append_id_link("forum", "forum-post", "/forum_posts/", { a1, a2 }); };
-  'forum 'i? 'topic #'i id                     => { append_id_link("topic", "forum-topic", "/forum_topics/", { a1, a2 }); };
-  'forum 'i? 'topic #'i id '/p'i page          => { append_paged_link("topic #", { a1, a2 }, "<a class=\"dtext-link dtext-id-link dtext-forum-topic-id-link\" href=\"", "/forum_topics/", "?page=", { b1, b2 }); };
+  'forum'i ' 'i? 'post'i? ' #'i id             => { append_id_link("forum", "forum-post", "/forums/posts/", { a1, a2 }); };
+  'forum 'i? 'topic #'i id                     => { append_id_link("topic", "forum-topic", "/forums/topics/", { a1, a2 }); };
+  'forum 'i? 'topic #'i id '/p'i page          => { append_paged_link("topic #", { a1, a2 }, "<a class=\"dtext-link dtext-id-link dtext-forum-topic-id-link\" href=\"", "/forums/topics/", "?page=", { b1, b2 }); };
+  'forum 'i? 'category #'i id                  => { append_id_link("category", "forum-category", "/forums/categories/", { a1, a2 }); };
   'comment #'i id                              => { append_id_link("comment", "comment", "/comments/", { a1, a2 }); };
   'dmail #'i id                                => { append_id_link("dmail", "dmail", "/dmails/", { a1, a2 }); };
   'dmail #'i id '/' dmail_key                  => { append_dmail_key_link({ a1, a2 }, { b1, b2 }); };
@@ -1072,12 +1073,6 @@ void StateMachine::append_internal_url(const DText::URL& url) {
         return append_id_link("pool", "pool", "/pools/", id);
       } else if (controller == "comments") {
         return append_id_link("comment", "comment", "/comments/", id);
-      } else if (controller == "forum_posts") {
-        return append_id_link("forum", "forum-post", "/forum_posts/", id);
-      } else if (controller == "forum_topics" && query.empty() && fragment.empty()) {
-        // https://danbooru.donmai.us/forum_topics/1234?page=2
-        // https://danbooru.donmai.us/forum_topics/1234#forum_post_5678
-        return append_id_link("topic", "forum-topic", "/forum_topics/", id);
       } else if (controller == "users") {
         return append_id_link("user", "user", "/users/", id);
       } else if (controller == "artists") {
@@ -1103,6 +1098,14 @@ void StateMachine::append_internal_url(const DText::URL& url) {
     if (!id.empty() && std::all_of(id.begin(), id.end(), ::isdigit)) {
       if (controller == "post" && action == "show") {
         return append_id_link("post", "post", "/posts/", id);
+      } else if (controller == "forums" && action == "posts") {
+        return append_id_link("forum", "forum-post", "/forums/posts/", id);
+      } else if (controller == "forums" && action == "categories") {
+        return append_id_link("category", "forum-category", "/forums/categories/", id);
+      } else if (controller == "forums" && action == "topics" && query.empty() && fragment.empty()) {
+        // https://danbooru.donmai.us/forums/topics/1234?page=2
+        // https://danbooru.donmai.us/forums/topics/1234#forum_post_5678
+        return append_id_link("topic", "forum-topic", "/forums/topics/", id);
       }
     }
   }
@@ -1180,7 +1183,7 @@ void StateMachine::append_section(const std::string_view summary, bool initially
 
 void StateMachine::append_topic(const std::string_view id) {
   append("<a class=\"dtext-link dtext-forum-topic-link\" href=\"");
-  append_relative_url("/forum_topics/");
+  append_relative_url("/forums/topics/");
   append_uri_escaped(id);
   append("\">");
   append("Topic: ");

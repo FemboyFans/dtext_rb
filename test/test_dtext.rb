@@ -69,7 +69,7 @@ class DTextTest < Minitest::Test
     assert_parse('<p><a rel="nofollow" class="dtext-link dtext-wiki-link" href="http://danbooru.donmai.us/wiki_pages/show_or_new?title=touhou">touhou</a></p>', "[[touhou]]", base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a rel="nofollow" class="dtext-link dtext-wiki-link" href="http://danbooru.donmai.us/wiki_pages/show_or_new?title=touhou">Touhou</a></p>', "[[touhou|Touhou]]", base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a class="dtext-link dtext-post-search-link" href="http://danbooru.donmai.us/posts?tags=touhou">touhou</a></p>', "{{touhou}}", base_url: "http://danbooru.donmai.us")
-    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-topic-id-link" href="http://danbooru.donmai.us/forum_topics/1234?page=4">topic #1234 (page 4)</a></p>', "topic #1234/p4", base_url: "http://danbooru.donmai.us")
+    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-topic-id-link" href="http://danbooru.donmai.us/forums/topics/1234?page=4">topic #1234 (page 4)</a></p>', "topic #1234/p4", base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a class="dtext-link" href="http://danbooru.donmai.us/posts">home</a></p>', '"home":/posts', base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a class="dtext-link" href="http://danbooru.donmai.us#posts">home</a></p>', '"home":#posts', base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a class="dtext-link" href="http://danbooru.donmai.us/posts">home</a></p>', '<a href="/posts">home</a>', base_url: "http://danbooru.donmai.us")
@@ -750,8 +750,9 @@ class DTextTest < Minitest::Test
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a></p>', 'https://danbooru.donmai.us/posts/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-pool-id-link" href="/pools/1234">pool #1234</a></p>', 'https://danbooru.donmai.us/pools/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-comment-id-link" href="/comments/1234">comment #1234</a></p>', 'https://danbooru.donmai.us/comments/1234', internal_domains: %w[danbooru.donmai.us])
-    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-post-id-link" href="/forum_posts/1234">forum #1234</a></p>', 'https://danbooru.donmai.us/forum_posts/1234', internal_domains: %w[danbooru.donmai.us])
-    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-topic-id-link" href="/forum_topics/1234">topic #1234</a></p>', 'https://danbooru.donmai.us/forum_topics/1234', internal_domains: %w[danbooru.donmai.us])
+    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-post-id-link" href="/forums/posts/1234">forum #1234</a></p>', 'https://danbooru.donmai.us/forums/posts/1234', internal_domains: %w[danbooru.donmai.us])
+    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-topic-id-link" href="/forums/topics/1234">topic #1234</a></p>', 'https://danbooru.donmai.us/forums/topics/1234', internal_domains: %w[danbooru.donmai.us])
+    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-category-id-link" href="/forums/categories/1234">category #1234</a></p>', 'https://danbooru.donmai.us/forums/categories/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-user-id-link" href="/users/1234">user #1234</a></p>', 'https://danbooru.donmai.us/users/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-artist-id-link" href="/artists/1234">artist #1234</a></p>', 'https://danbooru.donmai.us/artists/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-note-id-link" href="/notes/1234">note #1234</a></p>', 'https://danbooru.donmai.us/notes/1234', internal_domains: %w[danbooru.donmai.us])
@@ -761,8 +762,8 @@ class DTextTest < Minitest::Test
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/posts/1234#comment_5678">https://danbooru.donmai.us/posts/1234#comment_5678</a></p>', 'https://danbooru.donmai.us/posts/1234#comment_5678', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/pools/1234?page=2">https://danbooru.donmai.us/pools/1234?page=2</a></p>', 'https://danbooru.donmai.us/pools/1234?page=2', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/favorite_groups/1234?page=2">https://danbooru.donmai.us/favorite_groups/1234?page=2</a></p>', 'https://danbooru.donmai.us/favorite_groups/1234?page=2', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
-    assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/forum_topics/1234?page=2">https://danbooru.donmai.us/forum_topics/1234?page=2</a></p>', 'https://danbooru.donmai.us/forum_topics/1234?page=2', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
-    assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/forum_topics/1234#forum_post_5678">https://danbooru.donmai.us/forum_topics/1234#forum_post_5678</a></p>', 'https://danbooru.donmai.us/forum_topics/1234#forum_post_5678', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
+    assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/forums/topics/1234?page=2">https://danbooru.donmai.us/forums/topics/1234?page=2</a></p>', 'https://danbooru.donmai.us/forums/topics/1234?page=2', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
+    assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/forums/topics/1234#forum_post_5678">https://danbooru.donmai.us/forums/topics/1234#forum_post_5678</a></p>', 'https://danbooru.donmai.us/forums/topics/1234#forum_post_5678', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/wiki_pages/1234#see-also">https://danbooru.donmai.us/wiki_pages/1234#see-also</a></p>', 'https://danbooru.donmai.us/wiki_pages/1234#see-also', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/wiki_pages/touhou#see-also">https://danbooru.donmai.us/wiki_pages/touhou#see-also</a></p>', 'https://danbooru.donmai.us/wiki_pages/touhou#see-also', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
 
@@ -1402,9 +1403,9 @@ class DTextTest < Minitest::Test
   end
 
   def test_forum_links
-    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-topic-id-link" href="/forum_topics/1234?page=4">topic #1234 (page 4)</a></p>', "topic #1234/p4")
-    assert_parse('<p><a class="dtext-link dtext-forum-topic-link" href="/forum_topics/1234">Topic: Topic Name</a></p>', "[topic=1234]Topic Name[/topic]")
-    assert_parse('<p><a class="dtext-link dtext-forum-topic-link" href="/forum_topics/1234">Topic: Topic Name</a></p>', "[topic=1234]Topic Name")
+    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-topic-id-link" href="/forums/topics/1234?page=4">topic #1234 (page 4)</a></p>', "topic #1234/p4")
+    assert_parse('<p><a class="dtext-link dtext-forum-topic-link" href="/forums/topics/1234">Topic: Topic Name</a></p>', "[topic=1234]Topic Name[/topic]")
+    assert_parse('<p><a class="dtext-link dtext-forum-topic-link" href="/forums/topics/1234">Topic: Topic Name</a></p>', "[topic=1234]Topic Name")
   end
 
   def test_id_links
@@ -1413,8 +1414,9 @@ class DTextTest < Minitest::Test
     assert_parse_id_link("dtext-post-changes-for-id-version-link", "/posts/versions?search[post_id]=1234&search[version]=4321", "post changes #1234:4321", text: "post changes #1234")
     assert_parse_id_link("dtext-post-flag-id-link", "/posts/flags/1234", "flag #1234")
     assert_parse_id_link("dtext-note-id-link", "/notes/1234", "note #1234")
-    assert_parse_id_link("dtext-forum-post-id-link", "/forum_posts/1234", "forum #1234")
-    assert_parse_id_link("dtext-forum-topic-id-link", "/forum_topics/1234", "topic #1234")
+    assert_parse_id_link("dtext-forum-post-id-link", "/forums/posts/1234", "forum #1234")
+    assert_parse_id_link("dtext-forum-topic-id-link", "/forums/topics/1234", "topic #1234")
+    assert_parse_id_link("dtext-forum-category-id-link", "/forums/categories/1234", "category #1234")
     assert_parse_id_link("dtext-comment-id-link", "/comments/1234", "comment #1234")
     assert_parse_id_link("dtext-pool-id-link", "/pools/1234", "pool #1234")
     assert_parse_id_link("dtext-user-id-link", "/users/1234", "user #1234")
