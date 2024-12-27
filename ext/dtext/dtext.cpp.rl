@@ -1079,9 +1079,9 @@ void StateMachine::append_internal_url(const DText::URL& url) {
         return append_id_link("artist", "artist", "/artists/", id);
       } else if (controller == "notes") {
         return append_id_link("note", "note", "/notes/", id);
-      } else if (controller == "favorite_groups" && query.empty()) {
-        // https://danbooru.donmai.us/favorite_groups/1234?page=2
-        return append_id_link("favgroup", "favorite-group", "/favorite_groups/", id);
+      } else if (controller == "post_sets" && query.empty()) {
+        // https://danbooru.donmai.us/post_sets/1234?page=2
+        return append_id_link("set", "set", "/post_sets/", id);
       } else if (controller == "wiki_pages" && fragment.empty()) {
         // http://danbooru.donmai.us/wiki_pages/10933#dtext-self-upload
         return append_id_link("wiki", "wiki-page", "/wiki_pages/", id);
