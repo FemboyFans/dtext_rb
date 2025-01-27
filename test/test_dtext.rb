@@ -480,7 +480,7 @@ class DTextTest < Minitest::Test
     assert_parse("<p><span class=\"dtext-color\" style=\"color: #FFA500\">test</span></p>", "[color=#FFA500]test[/color]", allow_color: true)
     assert_parse("<p><span class=\"dtext-color\" style=\"color: orangered\">test</span></p>", "[color=orangered]test[/color]", allow_color: true)
     assert_parse("<p>test</p>", "[color=orangered]test[/color]", allow_color: false)
-    typed = %w[general gen artist art voice-actor va copyright copy co character char ch oc species spec invalid inv meta lore lor gender safe questionable explicit]
+    typed = %w[general gen artist art contributor cont copyright copy co character char ch oc species spec invalid inv meta lore lor gender safe questionable explicit]
     typed.each do |category|
       assert_parse("<p><span class=\"dtext-color-#{category}\">test</span></p>", "[color=#{category}]test[/color]", allow_color: true)
     end
