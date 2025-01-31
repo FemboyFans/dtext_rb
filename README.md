@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> DText was moved to the [FemboyFans](https://github.com/FemboyFans/FemboyFans) repository in commit [e192f34](https://github.com/FemboyFans/FemboyFans/commit/e192f34d14c369713d5531b7cf32f99eae8379ae). See [lib/dtext_rb](https://github.com/FemboyFans/FemboyFans/tree/master/lib/dtext_rb#readme) in the FemboyFans repo.
+
 ## About
 
 Uses the [ragel state machine](https://github.com/adrian-thurston/ragel) to generate the dtext parsing capabilities of [FemboyFans](https://femboy.fan).
